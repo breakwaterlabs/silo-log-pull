@@ -1,0 +1,1 @@
+python ./silo_batch_pull.py
