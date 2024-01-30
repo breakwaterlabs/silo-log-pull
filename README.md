@@ -1,12 +1,18 @@
 # silo-log-pull
 
+This script updates the example silo log script from https://support.authentic8.com/support/solutions/articles/16000027682.
 
+The scripts there were written for python2 and are difficult to run today. In addition, they are not well suited to an automated process.
+
+This script aims to fix that by providing configuration via a JSON file that can support a number of scenarios. In particular, this is designed to support traditional single-shot "download and decrypt", or more secure low-side download / high-side decrypt scenarios.
+
+It also provides robust error handling and be resilient to misconfiguration.
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+Simply download the python script and run it. If you do not have a `silo_config.json`, the script will create one with default values. Note that you will be required to change at least one configuration for the script to launch, as by default it will have no customer org configured and no API key with which to download logs.
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Configuring the script
 
 ## Add your files
 
