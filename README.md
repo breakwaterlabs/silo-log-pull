@@ -14,6 +14,24 @@ Simply download the python script and run it. If you do not have a `silo_config.
 
 ## Configuring the script
 
+The current options in `silo_config.json` are as follows (along with their current default values):
+```
+{
+   "ea_host" : 'extapi.authentic8.com',     # The authentic8 API endpoint. This should not change.
+   "customer_org" : "",                     # The customer org found when you log into the web console.
+   "token_file_path" : "token.txt",         # Required if download
+   "log_type" : 'ENC',
+   "fetch_num_days" : 7,
+   "output_directory" : "logs",
+   "output_csv" : True,
+   "output_json" : False,
+   "output_console": True,
+   "download_logs": False,
+   "decrypt_logs" : True,
+   "decrypt_passphrase_file": "seccure_key.txt",
+   "display_seccure_pubkey": False
+}
+```
 ## Add your files
 
 - [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
