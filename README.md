@@ -37,13 +37,14 @@ The current options in `silo_config.json` are as follows (along with their curre
 
 ## Installation
 This script requires Python 3. It has been tested on 3.6 and 3.12.
-It also requires the `seccure` package found on [Pypi](https://pypi.org/project/seccure/).
+
+If any of the 'seccure_*' options are set to true (e.g. decryption), then the `seccure` python package is also required. It can be found on [Pypi](https://pypi.org/project/seccure/).
 Please note for offline installations that seccure has a number of sub-dependencies that may need to be moved over:
  - [six](https://pypi.org/project/six/)
  - [pycryptodome](https://pypi.org/project/pycryptodome/)
  - [gmpy2](https://pypi.org/project/gmpy2/)
 
-In cross-platform / airgap scenarios, it may be necessary to compile one or more of those, which may bring in requirements for  python3-devel, or to manually transfer the appropriate wheel files from pypi (and to potentially rename them).
+In cross-platform / offline scenarios, it may be necessary to compile one or more of those, which may bring in requirements for  python3-devel, or to manually transfer the appropriate wheel files from pypi. It may also be necessary to rename some wheel files depending on your linux distribution.
 
 I have found gmpy2 in particular to be problematic as it tends to prefer building from source which can work poorly in some environments. 
 The following will may be helpful in getting the binary gmpy2 installation and ignore SSL errors (e.g. by upstream firewalls), which may be helpful in locked-down environments.
