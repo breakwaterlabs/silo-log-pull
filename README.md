@@ -59,9 +59,9 @@ python -m  pip install  --trusted-host pypi.python.org --trusted-host files.pyth
  3. `python3 .\silo_batch_pull.py`
 
 ## Roadmap
- - [ ] Update filesystem code to use cross-OS native code (current code relies on Windows conventions)
- - [ ] Support arbitrary date ranges
- - [ ] Support alternate directories for import and download
+ - [x] Update filesystem code to use cross-OS native code (current code relies on Windows conventions)
+ - [x] Support arbitrary date ranges
+ - [x] Support alternate directories for import and download
 
 ## License
 See the LICENSE.md file for details.
