@@ -10,6 +10,6 @@
     "output_console": true,
     "download_logs": true,
     "decrypt_logs": false,
-    "decrypt_passphrase_file": "seccure_key.txt" # This should be empty on the low side.
+    "decrypt_passphrase_file": "seccure_key.txt", # This should be empty on the low side.
 	"display_seccure_pubkey": false
 }
