@@ -11,19 +11,21 @@ import re
 
 settings_path = "silo_config.json"
 default_settings = {
-   "ea_host" : 'extapi.authentic8.com',
-   "customer_org" : "",
-   "token_file_path" : "token.txt",
-   "log_type" : 'ENC',
-   "fetch_num_days" : 7,
-   "output_directory" : "logs",
-   "output_csv" : True,
-   "output_json" : False,
-   "output_console": True,
-   "download_logs": False,
-   "decrypt_logs" : False,
-   "decrypt_passphrase_file": "seccure_key.txt",
-   "display_seccure_pubkey": False
+   "log_directory" : "logs",                    #// Directory where logs are or will go
+   "api_download_logs": True,                   #// Process logs from...? True = Silo, false = logs directory
+   "api_endpoint" : 'extapi.authentic8.com',    #// Should usually be 'extapi.authentic8.com'
+   "api_org_name" : "",                         #// Organization name shown in the Silo Admin portal
+   "api_token_file" : "token.txt",              #// File containing 32-char API key (login credential) provided by Silo.
+   "log_type" : 'ENC',                          #// Log type to download or import. See Silo docs for other options (like 'LOG')
+   "date_start": "",                            #// Blank = today, otherwise provide a valid date like '2020-01-30'
+   "fetch_num_days" : 30,                       #// How many days back from start date to download
+   "process_logs_as_daily" : True,              #// Whether to fetch logs as a single file, or 1 log per day
+   "seccure_passphrase_file": "seccure_key.txt",#// File containing seccure passphrase. Only required for seccure options.
+   "seccure_decrypt_logs" : False,              #// Decrypt logs during processing?
+   "seccure_show_pubkey": False,                #// Show the pubkey for the passphrase file?   
+   "output_csv" : False,                        #// Post-process: Save results to .CSV files?
+   "output_json" : True,                        #// Post-process: Save results to .JSON files?
+   "output_console": True                       #// Post-process: Show logs on console window?
 }
 
 def usage_abort( extra='', settings=True ):
@@ -32,9 +34,9 @@ def usage_abort( extra='', settings=True ):
    print("####################################################################")
    if settings:
       print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + settings_path)
-      print('   "customer_org" : "<org>"')
-      print("\nIf decrypt_logs or display_seccure_pubkey is True, then the following setting must be set to a file containing the seccure passphrase: ")
-      print('   "decrypt_passphrase_file" : "<seccure_key.txt>" ')
+      print('   "api_org_name" : "<org>"')
+      print("\nIf seccure_decrypt_logs or seccure_show_pubkey is True, then the following setting must be set to a file containing the seccure passphrase: ")
+      print('   "seccure_passphrase_file" : "<seccure_key.txt>" ')
    else:
       print("\nSomething went wrong unrelated to reading your settings.")
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
@@ -70,13 +72,13 @@ def import_json_config(config_path, defaults):
          jsonfile.close()
    else:
       create_settings_file(config_path, defaults)
-      usage_abort("Settings file was not found, so created new at " + config_path + ". Please set customer_org in this file before re-running.")
-   if file_config.get("customer_org") is None:
-      usage_abort( 'customer_org must be defined.' )
-   elif not (type(file_config["customer_org"]) == type(defaults["customer_org"])):
-      usage_abort( 'Wrong type for customer_org. Expecting ' +  type(defaults["customer_org"]) )
-   elif file_config["customer_org"] == "":
-      usage_abort( 'customer_org must not be blank.' )
+      usage_abort("Settings file was not found, so created new at " + config_path + ". Please set api_org_name in this file before re-running.")
+   if file_config.get("api_org_name") is None:
+      usage_abort( 'api_org_name must be defined.' )
+   elif not (type(file_config["api_org_name"]) == type(defaults["api_org_name"])):
+      usage_abort( 'Wrong type for api_org_name. Expecting ' +  type(defaults["api_org_name"]) )
+   elif file_config["api_org_name"] == "":
+      usage_abort( 'api_org_name must not be blank.' )
    bad_settings = False
    for key in defaults.keys():
       usedefault=False
@@ -101,22 +103,22 @@ def import_json_config(config_path, defaults):
 
 config = import_json_config(settings_path, default_settings)
 
-if config["decrypt_logs"] or config["display_seccure_pubkey"]:
+if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    import seccure
    import base64
-   if not config["decrypt_passphrase_file"] or not path_accessible(config["decrypt_passphrase_file"]):
-      usage_abort("could not access the decrypt_passphrase_file: " + config["decrypt_passphrase_file"])
-   pass_file = open( config["decrypt_passphrase_file"], "rb" )
+   if not config["seccure_passphrase_file"] or not path_accessible(config["seccure_passphrase_file"]):
+      usage_abort("could not access the seccure_passphrase_file: " + config["seccure_passphrase_file"])
+   pass_file = open( config["seccure_passphrase_file"], "rb" )
    passphrase = pass_file.read().rstrip()
    pass_file.close()
    if len(passphrase) < 1:
       usage_abort("Your passphrase file is empty. Please make sure you have specified a passphrase.")
    if len(passphrase) < 10:
       input("\nYour passphrase is very short. Please make a new passphrase that meets NIST recommendations.")
-   if config["display_seccure_pubkey"]:   
+   if config["seccure_show_pubkey"]:   
       input("\n-----  Start Seccure Pubkey  -----\n" + str(seccure.passphrase_to_pubkey(passphrase))+ "\n------  End Seccure Pubkey  ------\n\n")
 
-out_dir = Path(re.sub(r'[^\w_. -]', '_', config["output_directory"]))
+out_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_directory"]))
 in_dir = out_dir
 
 for dir in [out_dir, in_dir]:
@@ -125,27 +127,27 @@ for dir in [out_dir, in_dir]:
    if not path_accessible(dir, True):
       usage_abort("Missing output directory / failed to create: " + dir)
 
-if config["download_logs"]:
+if config["api_download_logs"]:
    import urllib.request, urllib.error, urllib.parse
    import base64
    cmd = {
       'command': 'extractlog',
-      'org': config["customer_org"],
+      'org': config["api_org_name"],
       'type': config["log_type"]
    }
    if not (config.get("limit") is None):
       cmd['limit'] = config["limit"]
-   if not path_accessible(config["token_file_path"]):
-      usage_abort("token_file_path is not accessible")
-   token_file = open( config["token_file_path"], 'r' )
+   if not path_accessible(config["api_token_file"]):
+      usage_abort("api_token_file is not accessible")
+   token_file = open( config["api_token_file"], 'r' )
    apitoken = token_file.read().strip()
    if not (base64.b64encode(base64.b64decode(apitoken)).decode('ascii') == apitoken and len(apitoken) == 32):
-      usage_abort( "Check your API token. It should be 32 characters long in base64.\n"+ config["token_file_path"] + " : " + apitoken)
+      usage_abort( "Check your API token. It should be 32 characters long in base64.\n"+ config["api_token_file"] + " : " + apitoken)
    auth_cmd = {
       'command': 'setauth',
       'data': apitoken}
    token_file.close()
-   url = 'https://' + config["ea_host"] + '/api/'
+   url = 'https://' + config["api_endpoint"] + '/api/'
    headers = { 'Content-Type': 'application/json' }
 
 for i in range(config["fetch_num_days"]):
@@ -156,7 +158,7 @@ for i in range(config["fetch_num_days"]):
    
    file_prefix_encrypted = 'silo_encrypted_' + this_day
    file_prefix_decrypted = 'silo_decrypted_' + this_day
-   if config["download_logs"]:
+   if config["api_download_logs"]:
       cmd['start_time'] = this_day_start
       cmd['end_time'] = this_day_end
       payload = json.dumps( [ auth_cmd, cmd ] ).encode('utf-8')
@@ -168,7 +170,7 @@ for i in range(config["fetch_num_days"]):
       if not 'result' in response[1]:
          errormsg = "Unexpected response from API.\n   " + str(response[0]) + "\n   " + str(response[1]['error'])
          if "KeyError" in response[1]['error'] and response[0]['result'] == 'setting auth from data':
-            errormsg = errormsg + "\n\nCheck if your API token is correct in the token file.\n   " + config["token_file_path"] + " : " + apitoken
+            errormsg = errormsg + "\n\nCheck if your API token is correct in the token file.\n   " + config["api_token_file"] + " : " + apitoken
          if response[1]['error'].startswith("No org matching"):
             errormsg = errormsg + "\n\nNote that this error might be caused by using a valid API key for a different organization. Double check that you are using the correct API key."
          usage_abort(extra=errormsg, settings=False)
@@ -188,7 +190,7 @@ for i in range(config["fetch_num_days"]):
             jsonfile.close()
 
    if config["log_type"].casefold() == 'ENC'.casefold():
-      if config["decrypt_logs"] == True:
+      if config["seccure_decrypt_logs"] == True:
          outfilejson = Path( out_dir, file_prefix_decrypted + '.json' )
          for log in json_data['logs']:
             log['clear'] = json.loads( seccure.decrypt( base64.b64decode( log['enc'] ), passphrase, curve='secp256r1/nistp256' ) )
@@ -212,7 +214,7 @@ for i in range(config["fetch_num_days"]):
       csv_writer = csv.writer(csv_file)
       count = 0
       for record in json_data["logs"]:
-         if config["decrypt_logs"]:
+         if config["seccure_decrypt_logs"]:
             for key in record["clear"].keys():
                record[key] = record["clear"][key]
             record["clear"] = "TRUE"
