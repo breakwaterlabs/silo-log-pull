@@ -6,6 +6,7 @@ import os
 import sys
 from datetime import date
 from datetime import timedelta
+from pathlib import Path
 import re
 
 settings_path = "silo_config.json"
@@ -20,7 +21,7 @@ default_settings = {
    "output_json" : False,
    "output_console": True,
    "download_logs": False,
-   "decrypt_logs" : True,
+   "decrypt_logs" : False,
    "decrypt_passphrase_file": "seccure_key.txt",
    "display_seccure_pubkey": False
 }
@@ -115,12 +116,14 @@ if config["decrypt_logs"] or config["display_seccure_pubkey"]:
    if config["display_seccure_pubkey"]:   
       input("\n-----  Start Seccure Pubkey  -----\n" + str(seccure.passphrase_to_pubkey(passphrase))+ "\n------  End Seccure Pubkey  ------\n\n")
 
-out_dir = re.sub(r'[^\w_. -]', '_', config["output_directory"])
+out_dir = Path(re.sub(r'[^\w_. -]', '_', config["output_directory"]))
+in_dir = out_dir
 
-if not path_accessible(out_dir, True):
-   os.makedirs(out_dir)
-if not path_accessible(out_dir, True):
-   usage_abort("Missing output directory / failed to create: " + out_dir)
+for dir in [out_dir, in_dir]:
+   os.makedirs(dir, exist_ok=True)
+   print(dir)
+   if not path_accessible(dir, True):
+      usage_abort("Missing output directory / failed to create: " + dir)
 
 if config["download_logs"]:
    import urllib.request, urllib.error, urllib.parse
@@ -151,8 +154,8 @@ for i in range(config["fetch_num_days"]):
    this_day_end = this_day + " 23:59:59"
    print("Date range: " + this_day_start + " - " + this_day_end)
    
-   file_prefix_encrypted = out_dir + '\silo_encrypted_' + this_day
-   file_prefix_decrypted = out_dir + '\silo_decrypted_' + this_day
+   file_prefix_encrypted = 'silo_encrypted_' + this_day
+   file_prefix_decrypted = 'silo_decrypted_' + this_day
    if config["download_logs"]:
       cmd['start_time'] = this_day_start
       cmd['end_time'] = this_day_end
@@ -172,35 +175,40 @@ for i in range(config["fetch_num_days"]):
       else:
          json_data = response[1]['result']
    else:
-      if config["decrypt_logs"]:
-         infile = file_prefix_encrypted + '.json'
+      if config["log_type"].casefold() == 'ENC'.casefold():
+         infile = Path( in_dir, file_prefix_encrypted + '.json' )
       else: 
-         infile = file_prefix_decrypted + '.json'
+         infile = Path( in_dir, file_prefix_decrypted + '.json' )
       if not path_accessible( infile ):
-         usage_abort("Settings indicate local import instad of download, but could not access local log: " + infile)
-      with open(infile, "r") as jsonfile:
-         json_data = json.load(jsonfile)
-         jsonfile.close()
+         print("Failed to import log (skipping): " + str(infile))
+         continue
+      else:
+         with open(infile, "r") as jsonfile:
+            json_data = json.load(jsonfile)
+            jsonfile.close()
 
-   if config["decrypt_logs"]:
-      for log in json_data['logs']:
-         log['clear'] = json.loads( seccure.decrypt( base64.b64decode( log['enc'] ), passphrase, curve='secp256r1/nistp256' ) )
-      outfile_prefix = file_prefix_decrypted
-   else:
-      outfile_prefix = file_prefix_encrypted
+   if config["log_type"].casefold() == 'ENC'.casefold():
+      if config["decrypt_logs"] == True:
+         outfilejson = Path( out_dir, file_prefix_decrypted + '.json' )
+         for log in json_data['logs']:
+            log['clear'] = json.loads( seccure.decrypt( base64.b64decode( log['enc'] ), passphrase, curve='secp256r1/nistp256' ) )
+      else:
+         outfilejson = Path( out_dir, file_prefix_encrypted + '.json' )
+   else: 
+      outfilejson = Path( out_dir, file_prefix_decrypted + '.json' )
    json_pretty = json.dumps( json_data, indent=4, ensure_ascii=False )
    
    if config["output_console"]:
       print( json_pretty )
       
    if config['output_json']:
-      with open (outfile_prefix + '.json', "w") as outfile:
+      with open (outfilejson, "w") as outfile:
          outfile.write(json_pretty)
       outfile.close()
 
    if config['output_csv']:
       import csv
-      csv_file=open(outfile_prefix + '.csv','w', newline='')
+      csv_file=open(outfilejson.with_suffix('.csv'),'w', newline='')
       csv_writer = csv.writer(csv_file)
       count = 0
       for record in json_data["logs"]:
