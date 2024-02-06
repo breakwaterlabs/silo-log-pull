@@ -12,7 +12,8 @@ import re
 
 settings_path = "silo_config.json"
 default_settings = {
-   "log_directory" : "logs",                    #// Directory where logs are or will go
+   "log_in_directory" : "logs",                 #// Directory where logs are imported from (if api_download_logs == false)
+   "log_out_directory" : "logs",                #// Directory where post-processed logs will go
    "api_download_logs": True,                   #// Process logs from...? True = Silo, false = logs directory
    "api_endpoint" : 'extapi.authentic8.com',    #// Should usually be 'extapi.authentic8.com'
    "api_org_name" : "",                         #// Organization name shown in the Silo Admin portal
@@ -117,8 +118,8 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    if config["seccure_show_pubkey"]:   
       input("\n-----  Start Seccure Pubkey  -----\n" + str(seccure.passphrase_to_pubkey(passphrase))+ "\n------  End Seccure Pubkey  ------\n\n")
 
-out_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_directory"]))
-in_dir = out_dir
+in_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_in_directory"]))
+out_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_out_directory"]))
 
 for dir in [out_dir, in_dir]:
    os.makedirs(dir, exist_ok=True)
