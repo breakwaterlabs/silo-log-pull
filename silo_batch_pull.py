@@ -47,7 +47,8 @@ def usage_abort( extra='', settings=True ):
 
 def create_settings_file(path, settings):
    try:
-      os.rename(path, path + ".bak")
+      if os.path.exists(path):
+         os.rename(path, path + ".bak")
       with open(path, "w") as jsonfile:
          jsonfile.write( json.dumps(settings, indent=4))
          jsonfile.close()
