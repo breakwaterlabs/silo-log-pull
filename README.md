@@ -17,19 +17,19 @@ Simply download the python script and run it. If you do not have a `silo_config.
 The current options in `silo_config.json` are as follows (along with their current default values):
 ```
 {
-   "ea_host" : 'extapi.authentic8.com',     # The authentic8 API endpoint. This should not change.
-   "customer_org" : "",                     # The customer org found when you log into the web console.
-   "token_file_path" : "token.txt",         # Required if download
-   "log_type" : 'ENC',
-   "fetch_num_days" : 7,
-   "output_directory" : "logs",
-   "output_csv" : True,
-   "output_json" : False,
-   "output_console": True,
-   "download_logs": False,
-   "decrypt_logs" : True,
-   "decrypt_passphrase_file": "seccure_key.txt",
-   "display_seccure_pubkey": False
+   "ea_host" : 'extapi.authentic8.com',         # The authentic8 API endpoint. This should not change.
+   "customer_org" : "",                         # The customer org found when you log into the web console.
+   "token_file_path" : "token.txt",             # Path of file containing just API key. Required if download_logs == True
+   "log_type" : 'ENC',                          # Valid types from silo docs. Only used if download_logs == true. Only tested with 'ENC'
+   "fetch_num_days" : 7,                        # Number of days back from today to fetch / import / process
+   "output_directory" : "logs",                 # Directory where logs are downloaded to, or imported from when download is off
+   "output_csv" : True,                         # Output to CSV (decrypted, if decrypt_logs == true)
+   "output_json" : False,                       # Output to JSON (decrypted, if decrypt_logs == true)
+   "output_console": True,                      # Display logs on-screen as they are processed
+   "download_logs": False,                      # True: fetch logs from authentic8; False: import from output_directory for processing
+   "decrypt_logs" : True,                       # Decrypt after download / import before output?
+   "decrypt_passphrase_file": "seccure_key.txt",# Location of file containing just the plain-text seccure passphrase (not public key)   
+   "display_seccure_pubkey": False              # True: display seccure pubkey in console and pause for input.
 }
 ```
 ## Add your files
