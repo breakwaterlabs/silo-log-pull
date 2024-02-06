@@ -11,5 +11,5 @@
     "download_logs": true,
     "decrypt_logs": true,
     "decrypt_passphrase_file": "seccure_key.txt" # This should have your plaintext seccure passphrase
-	"display_seccure_pubkey": true
+    "display_seccure_pubkey": true
 }
