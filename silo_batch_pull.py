@@ -5,6 +5,7 @@ import json
 import os
 import sys
 from datetime import date
+from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
 import re
@@ -18,8 +19,7 @@ default_settings = {
    "api_token_file" : "token.txt",              #// File containing 32-char API key (login credential) provided by Silo.
    "log_type" : 'ENC',                          #// Log type to download or import. See Silo docs for other options (like 'LOG')
    "date_start": "",                            #// Blank = today, otherwise provide a valid date like '2020-01-30'
-   "fetch_num_days" : 30,                       #// How many days back from start date to download
-   "process_logs_as_daily" : True,              #// Whether to fetch logs as a single file, or 1 log per day
+   "fetch_num_days" : 7,                        #// How many days back from start date to download
    "seccure_passphrase_file": "seccure_key.txt",#// File containing seccure passphrase. Only required for seccure options.
    "seccure_decrypt_logs" : False,              #// Decrypt logs during processing?
    "seccure_show_pubkey": False,                #// Show the pubkey for the passphrase file?   
@@ -121,7 +121,6 @@ in_dir = out_dir
 
 for dir in [out_dir, in_dir]:
    os.makedirs(dir, exist_ok=True)
-   print(dir)
    if not path_accessible(dir, True):
       usage_abort("Missing output directory / failed to create: " + dir)
 
@@ -148,8 +147,16 @@ if config["api_download_logs"]:
    url = 'https://' + config["api_endpoint"] + '/api/'
    headers = { 'Content-Type': 'application/json' }
 
+if config['date_start'] == "":
+   start_date = date.today()
+else:
+   try:
+      start_date = datetime.strptime(config['date_start'],'%Y-%m-%d').date()
+   except:
+      usage_abort("Problem converting 'date_start' to datetime. Check that it is formatted as %Y-%m-%d : " + config['date_start'])
+
 for i in range(config["fetch_num_days"]):
-   this_day = (date.today() - timedelta(days=i)).strftime('%Y-%m-%d')
+   this_day = (start_date - timedelta(days=i)).strftime('%Y-%m-%d')
    this_day_start = this_day + " 00:00:00"
    this_day_end = this_day + " 23:59:59"
    print("Date range: " + this_day_start + " - " + this_day_end)
