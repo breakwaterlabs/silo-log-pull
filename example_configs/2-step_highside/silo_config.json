@@ -1,7 +1,7 @@
 {
     "ea_host": "extapi.authentic8.com",
     "customer_org": "none",
-    "token_file_path": "token.txt", # This should be empty on the high side.
+    "token_file_path": "token.txt",
     "log_type": "ENC",
     "fetch_num_days": 90,
     "output_directory": "logs",
@@ -10,6 +10,6 @@
     "output_console": true,
     "download_logs": false,
     "decrypt_logs": true,
-    "decrypt_passphrase_file": "seccure_key.txt", # This should be populated on the high side.
+    "decrypt_passphrase_file": "seccure_key.txt",
 	"display_seccure_pubkey": true
 }
