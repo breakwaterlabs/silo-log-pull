@@ -46,9 +46,10 @@ Please note for offline installations that seccure has a number of sub-dependenc
 In cross-platform / airgap scenarios, it may be necessary to compile one or more of those, which may bring in requirements for  python3-devel, or to manually transfer the appropriate wheel files from pypi (and to potentially rename them).
 
 I have found gmpy2 in particular to be problematic as it tends to prefer building from source which can work poorly in some environments. 
-The following procedure will seek the binary installation and ignore SSL errors (e.g. by upstream firewalls), which may be helpful in locked-down environments:
+The following will may be helpful in getting the binary gmpy2 installation and ignore SSL errors (e.g. by upstream firewalls), which may be helpful in locked-down environments.
 ```
-python -m pip install gmpy2 
+python -m  pip install  --trusted-host pypi.python.org --trusted-host files.pythonhosted.org seccure
+python -m  pip install --only-binary=:all: --trusted-host pypi.python.org --trusted-host files.pythonhosted.org gmpy2
 ```
 
 ## Usage
