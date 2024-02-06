@@ -17,19 +17,21 @@ Simply download the python script and run it. If you do not have a `silo_config.
 The current options in `silo_config.json` are as follows (along with their current default values):
 ```
 {
-   "ea_host" : 'extapi.authentic8.com',         # The authentic8 API endpoint. This should not change.
-   "customer_org" : "",                         # Customer org as shown in the web console. Required if download_logs == true
-   "token_file_path" : "token.txt",             # Path of file containing just API key. Required if download_logs == True
-   "log_type" : 'ENC',                          # Valid types from silo docs. Only used if download_logs == true. Only tested with 'ENC'
-   "fetch_num_days" : 7,                        # Number of days back from today to fetch / import / process
-   "output_directory" : "logs",                 # Directory where logs are downloaded to, or imported from when download is off
-   "output_csv" : True,                         # Output to CSV (decrypted, if decrypt_logs == true)
-   "output_json" : False,                       # Output to JSON (decrypted, if decrypt_logs == true)
-   "output_console": True,                      # Display logs on-screen as they are processed
-   "download_logs": False,                      # True: fetch logs from authentic8; False: import from output_directory for processing
-   "decrypt_logs" : True,                       # Decrypt after download / import before output?
-   "decrypt_passphrase_file": "seccure_key.txt",# Location of file containing just the plain-text seccure passphrase (not public key)   
-   "display_seccure_pubkey": False              # True: display seccure pubkey in console and pause for input.
+   "log_in_directory" : "logs",                 #// Directory where logs are imported from (if api_download_logs == false)
+   "log_out_directory" : "logs",                #// Directory where post-processed logs will go
+   "api_download_logs": True,                   #// Process logs from...? True = Silo, false = logs directory
+   "api_endpoint" : 'extapi.authentic8.com',    #// Should usually be 'extapi.authentic8.com'
+   "api_org_name" : "",                         #// Organization name shown in the Silo Admin portal
+   "api_token_file" : "token.txt",              #// File containing 32-char API key (login credential) provided by Silo.
+   "log_type" : 'ENC',                          #// Log type to download or import. See Silo docs for other options (like 'LOG')
+   "date_start": "",                            #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'
+   "fetch_num_days" : 7,                        #// How many days back from date_start to download
+   "seccure_passphrase_file": "seccure_key.txt",#// File containing seccure passphrase. Only required for seccure options.
+   "seccure_decrypt_logs" : False,              #// Decrypt logs during processing?
+   "seccure_show_pubkey": False,                #// Show the pubkey for the passphrase file?   
+   "output_csv" : False,                        #// Post-process: Save results to .CSV files?
+   "output_json" : True,                        #// Post-process: Save results to .JSON files?
+   "output_console": True                       #// Post-process: Show logs on console window?
 }
 ```
 
