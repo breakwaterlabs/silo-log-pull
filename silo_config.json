@@ -1,5 +1,6 @@
 {
-    "log_directory": "logs",
+    "log_in_directory": "logs",
+    "log_out_directory": "logs_out",
     "api_download_logs": true,
     "api_endpoint": "extapi.authentic8.com",
     "api_org_name": "My Silo Organization",

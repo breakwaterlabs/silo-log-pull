@@ -19,7 +19,7 @@ default_settings = {
    "api_org_name" : "",                         #// Organization name shown in the Silo Admin portal
    "api_token_file" : "token.txt",              #// File containing 32-char API key (login credential) provided by Silo.
    "log_type" : 'ENC',                          #// Log type to download or import. See Silo docs for other options (like 'LOG')
-   "date_start": "",                            #// Blank = today, otherwise provide a valid date like '2020-01-30'
+   "date_start": "",                            #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'
    "fetch_num_days" : 7,                        #// How many days back from start date to download
    "seccure_passphrase_file": "seccure_key.txt",#// File containing seccure passphrase. Only required for seccure options.
    "seccure_decrypt_logs" : False,              #// Decrypt logs during processing?
