@@ -73,12 +73,6 @@ def import_json_config(config_path, defaults):
    else:
       create_settings_file(config_path, defaults)
       usage_abort("Settings file was not found, so created new at " + config_path + ". Please set api_org_name in this file before re-running.")
-   if file_config.get("api_org_name") is None:
-      usage_abort( 'api_org_name must be defined.' )
-   elif not (type(file_config["api_org_name"]) == type(defaults["api_org_name"])):
-      usage_abort( 'Wrong type for api_org_name. Expecting ' +  type(defaults["api_org_name"]) )
-   elif file_config["api_org_name"] == "":
-      usage_abort( 'api_org_name must not be blank.' )
    bad_settings = False
    for key in defaults.keys():
       usedefault=False
@@ -99,6 +93,10 @@ def import_json_config(config_path, defaults):
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
       input("\nPress any key to continue, and create a fixed config file. A backup of your config file will be made.")
       create_settings_file(config_path, file_config)
+   if file_config.get("api_org_name") is None:
+      usage_abort( 'api_org_name must be defined.' )
+   elif file_config["api_org_name"] == "":
+      usage_abort( 'api_org_name must not be blank.' ) 
    return file_config
 
 config = import_json_config(settings_path, default_settings)
