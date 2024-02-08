@@ -43,7 +43,7 @@ def usage_abort( extra='', settings=True ):
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
    print("\nPlease see below for any specific error details:\n\n")
    print(extra)
-   input("\nPress any key to exit...")
+   input("\nPress enter to exit...")
    sys.exit()
 
 def create_settings_file(path, settings):
@@ -93,7 +93,7 @@ def import_json_config(config_path, defaults):
       print( "Conf: {k:25s} = {s:25s} {m}".format(k = key, s = str(file_config[key]), m = message) )
    if bad_settings:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
-      input("\nPress any key to continue, and create a fixed config file. A backup of your config file will be made.")
+      input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
       create_settings_file(config_path, file_config)
    if file_config.get("api_org_name") is None:
       usage_abort( 'api_org_name must be defined.' )
@@ -114,9 +114,12 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    if len(passphrase) < 1:
       usage_abort("Your passphrase file is empty. Please make sure you have specified a passphrase.")
    if len(passphrase) < 10:
-      input("\nYour passphrase is very short. Please make a new passphrase that meets NIST recommendations.")
+      print("\nWarning: Your passphrase is very short. Please make a new passphrase that meets NIST recommendations to avoid this message.")
+      input("Press enter to acknowledge.")
    if config["seccure_show_pubkey"]:   
-      input("\n-----  Start Seccure Pubkey  -----\n" + str(seccure.passphrase_to_pubkey(passphrase))+ "\n------  End Seccure Pubkey  ------\n\n")
+      print("\n\nConfig set to display pubkey.\n\n-----  Start Seccure Pubkey  -----\n" + str(seccure.passphrase_to_pubkey(passphrase))+ "\n------  End Seccure Pubkey  ------\n")
+      input("Press enter to continue...")
+      print("\n\n")
 
 in_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_in_directory"]))
 out_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_out_directory"]))
