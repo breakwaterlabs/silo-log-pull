@@ -80,7 +80,7 @@ Note that some tags like `manylinux2014` and  `manylinux_2_17_x86_64` seem to be
 cd /path/to/dependencies
 mv gmpy2-2.1.5-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl gmpy2-2.1.5-cp36-cp36m-linux_x86_64.whl
 mv pycryptodome-3.20.0-cp35-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl pycryptodome-3.20.0-cp35-abi3-linux_x86_64.whl
-python -m pip install --no-index --find-links ./ -r /path/to/requirements.txt
+python -m pip install --no-index --find-links /path/to/dependencies/ -r /path/to/requirements.txt
 ```
 
 
