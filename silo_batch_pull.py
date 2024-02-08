@@ -111,13 +111,15 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    pass_file = open( config["seccure_passphrase_file"], "rb" )
    passphrase = pass_file.read().rstrip()
    pass_file.close()
+   seccure_curve = 'secp256r1/nistp256'
    if len(passphrase) < 1:
       usage_abort("Your passphrase file is empty. Please make sure you have specified a passphrase.")
    if len(passphrase) < 10:
       print("\nWarning: Your passphrase is very short. Please make a new passphrase that meets NIST recommendations to avoid this message.")
       input("Press enter to acknowledge.")
    if config["seccure_show_pubkey"]:   
-      print("\n\nConfig set to display pubkey.\n\n-----  Start Seccure Pubkey  -----\n" + str(seccure.passphrase_to_pubkey(passphrase))+ "\n------  End Seccure Pubkey  ------\n")
+      pubkey = str(seccure.passphrase_to_pubkey(passphrase, curve=seccure_curve))
+      print("\n\nConfig set to display pubkey.\n\n-----  Start Seccure Pubkey  -----\n" + pubkey + "\n------  End Seccure Pubkey  ------\n")
       input("Press enter to continue...")
       print("\n\n")
 
@@ -203,7 +205,7 @@ for i in range(config["fetch_num_days"]):
       if config["seccure_decrypt_logs"] == True:
          outfilejson = Path( out_dir, file_prefix_decrypted + '.json' )
          for log in json_data['logs']:
-            log['clear'] = json.loads( seccure.decrypt( base64.b64decode( log['enc'] ), passphrase, curve='secp256r1/nistp256' ) )
+            log['clear'] = json.loads( seccure.decrypt( base64.b64decode( log['enc'] ), passphrase, curve=seccure_curve ) )
       else:
          outfilejson = Path( out_dir, file_prefix_encrypted + '.json' )
    else: 
