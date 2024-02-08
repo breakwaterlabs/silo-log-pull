@@ -44,14 +44,46 @@ Please note for offline installations that seccure has a number of sub-dependenc
  - [pycryptodome](https://pypi.org/project/pycryptodome/)
  - [gmpy2](https://pypi.org/project/gmpy2/)
 
-In cross-platform / offline scenarios, it may be necessary to compile one or more of those, which may bring in requirements for  python3-devel, or to manually transfer the appropriate wheel files from pypi. It may also be necessary to rename some wheel files depending on your linux distribution.
+### Troubleshooting Dependencies
+
+In cross-platform / offline scenarios, it may be necessary to compile one or more of the dependencies, which may bring in requirements for python3-devel, or to manually transfer the appropriate wheel files from pypi. It may also be necessary to rename some wheel files depending on your linux distribution.
 
 I have found gmpy2 in particular to be problematic as it tends to prefer building from source which can work poorly in some environments. 
-The following will may be helpful in getting the binary gmpy2 installation and ignore SSL errors (e.g. by upstream firewalls), which may be helpful in locked-down environments.
+
+The following can be used to install the binary gmpy2 installation and ignore SSL errors (e.g. by upstream firewalls), which may be helpful in locked-down environments.
 ```
 python -m  pip install --only-binary=:all: --trusted-host pypi.python.org --trusted-host files.pythonhosted.org gmpy2
 python -m  pip install  --trusted-host pypi.python.org --trusted-host files.pythonhosted.org seccure
 ```
+
+### Incompatible Platform
+
+Some combinations of Linux distro and python version do not like the wheel files provided by PyPi.org (e.g. for pycryptodome) and complain of an incompatible platform.
+
+To troubleshoot this, first determine what platform tags your version of python supports either from the command line: 
+
+`python -m pip debug --verbose`
+
+or from within the python interpreter
+
+```python
+import packaging.tags
+tags = packaging.tags.sys_tags()
+print('\n'.join([f'{tag.interpreter}-{tag.abi}-{tag.platform}' for tag in tags]))
+```
+
+Once you have that, you should be able to download the matching version from PyPi.org.
+
+Note that some tags like `manylinux2014` and  `manylinux_2_17_x86_64` seem to be unsupported in some versions of pip. This can be worked around by renaming the problematic wheel file to a compatible tag before installing them:
+
+```bash
+cd /path/to/dependencies
+mv gmpy2-2.1.5-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl gmpy2-2.1.5-cp36-cp36m-linux_x86_64.whl
+mv pycryptodome-3.20.0-cp35-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl pycryptodome-3.20.0-cp35-abi3-linux_x86_64.whl
+python -m pip install --no-index --find-links ./ -r /path/to/requirements.txt
+```
+
+
 
 ## Usage
 
