@@ -209,7 +209,7 @@ for i in range(config["fetch_num_days"]):
          for log in json_data['logs']:
             log['clear'] = json.loads( seccure.decrypt( base64.b64decode( log['enc'] ), passphrase, curve=seccure_curve ) )
       else:
-         outfilejson = Path( out_dir, file_prefix_encrypted + '.json' )
+         outfilejson = Path( in_dir, file_prefix_encrypted + '.json' )
    else: 
       outfilejson = Path( out_dir, file_prefix_decrypted + '.json' )
    json_pretty = json.dumps( json_data, indent=4, ensure_ascii=False )
