@@ -1,3 +1,15 @@
-token.txt
-silo_config.json
-seccure_key.txt
+# General categorical ignores
+token*
+silo_config.*
+seccure*
+*.txt
+*.csv
+*.json
+logs*
+
+# Manually whitelist files we want.
+!requirements.txt
+!*.md
+!example*
+!*.bat
+!*.py
