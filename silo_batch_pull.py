@@ -10,8 +10,8 @@ from datetime import timedelta
 from pathlib import Path
 import re
 
-settings_path = "silo_config.json"
 default_settings = {
+   "settings_path"    : "silo_config.json",     #// Path to config file. Useful for concerns about leaking configuration.
    "log_in_directory" : "logs",                 #// Directory where logs are imported from (if api_download_logs == false)
    "log_out_directory" : "logs",                #// Directory where post-processed logs will go
    "api_download_logs": True,                   #// Process logs from...? True = Silo, false = logs directory
@@ -34,10 +34,11 @@ def usage_abort( extra='', settings=True ):
    print("########################### FATAL ERROR ############################")
    print("####################################################################")
    if settings:
-      print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + settings_path)
+      print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + default_settings['settings_path'])
       print('   "api_org_name" : "<org>"')
       print("\nIf seccure_decrypt_logs or seccure_show_pubkey is True, then the following setting must be set to a file containing the seccure passphrase: ")
       print('   "seccure_passphrase_file" : "<seccure_key.txt>" ')
+      print('\nOtherwise you can specify an alternate settings path by setting "settings_path" in' + default_settings['settings_path'])
    else:
       print("\nSomething went wrong unrelated to reading your settings.")
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
@@ -64,17 +65,27 @@ def path_accessible(path, as_dir=False):
       return os.path.isfile(path) and os.access(path, os.R_OK)
 
 def import_json_config(config_path, defaults):
-   if path_accessible(config_path):
+   fixedpath = Path(config_path)
+   if path_accessible(fixedpath):
       print("Settings file found. Importing settings.")
-      with open(config_path, "r") as jsonfile:
+      with open(Path(fixedpath), "r") as jsonfile:
          try:
             file_config = json.load(jsonfile)
+            if not (file_config.get('settings_path') is None):
+               altpath = Path(file_config['settings_path'])
+               if altpath != fixedpath:
+                  print("Found alternate settings path, using that instead: " + altpath._str)
+                  fixedpath = altpath
+                  with open(altpath, "r") as altfile:
+                     file_config = json.load(altfile)
+            print("\nSuccessfully read config file at " + fixedpath._str)
          except:
-            usage_abort("Could not parse settings file as valid JSON. Either fix the file, rename it, or delete it and this script will create a new one.")
+            usage_abort("Could not parse settings file '" + fixedpath._str + "' as valid JSON. Either fix the file, rename it, or delete it and this script will create a new one.")
          jsonfile.close()
    else:
-      create_settings_file(config_path, defaults)
-      usage_abort("Settings file was not found, so created new at " + config_path + ". Please set api_org_name in this file before re-running.")
+      create_settings_file(fixedpath._str, defaults)
+      usage_abort("Settings file was not found, so created new at " + fixedpath._str + ". Please set api_org_name in this file before re-running.")
+   # Check if an alternate file config path is given, and re-parse if so.
    bad_settings = False
    for key in defaults.keys():
       usedefault=False
@@ -94,14 +105,14 @@ def import_json_config(config_path, defaults):
    if bad_settings:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
       input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
-      create_settings_file(config_path, file_config)
+      create_settings_file(fixedpath, file_config)
    if file_config.get("api_org_name") is None:
       usage_abort( 'api_org_name must be defined.' )
    elif file_config["api_org_name"] == "":
       usage_abort( 'api_org_name must not be blank.' ) 
    return file_config
 
-config = import_json_config(settings_path, default_settings)
+config = import_json_config(default_settings['settings_path'], default_settings)
 
 if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    import seccure
