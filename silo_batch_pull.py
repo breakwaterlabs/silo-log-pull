@@ -143,10 +143,12 @@ if config["api_download_logs"]:
       cmd['limit'] = config["limit"]
    if not path_accessible(config["api_token_file"]):
       usage_abort("api_token_file is not accessible")
-   token_file = open( config["api_token_file"], 'r' )
-   apitoken = token_file.read().strip()
+   with open( config["api_token_file"], 'r' ) as token_file:
+      apitoken = token_file.read().strip().replace(" ","")
    if not (base64.b64encode(base64.b64decode(apitoken)).decode('ascii') == apitoken and len(apitoken) == 32):
       usage_abort( "Check your API token. It should be 32 characters long in base64.\n"+ config["api_token_file"] + " : " + apitoken)
+   else:
+      print("\nUsing API token: " + apitoken)
    auth_cmd = {
       'command': 'setauth',
       'data': apitoken}
