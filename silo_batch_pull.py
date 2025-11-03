@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from getopt import getopt # Old school to support Python < 2.7
+#from getopt import getopt # Old school to support Python < 2.7
 import json
 import os
 import sys
@@ -26,7 +26,9 @@ default_settings = {
    "seccure_show_pubkey": False,                #// Show the pubkey for the passphrase file?   
    "output_csv" : False,                        #// Post-process: Save results to .CSV files?
    "output_json" : True,                        #// Post-process: Save results to .JSON files?
-   "output_console": True                       #// Post-process: Show logs on console window?
+   "output_console": True,                      #// Post-process: Show logs on console window?
+   "web_interface": True,                       #// Activate web interface
+   "web_interface_port": 8080                   #// Listen port for web interface
 }
 
 def usage_abort( extra='', settings=True ):
