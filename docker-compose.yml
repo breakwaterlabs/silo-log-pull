@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  silo-log-pull:
+    build: .
+    container_name: silo-log-pull
+    volumes:
+      # Mount local config directory to /config in container
+      - ./config:/config
+      # Mount local logs directory to /logs in container
+      - ./logs:/logs
+    environment:
+      # Required: Your Silo organization name
+      - SILO_API_ORG_NAME=${SILO_API_ORG_NAME}
+
+      # Optional: Override default paths (if not using /config and /logs)
+      # - SILO_SETTINGS_PATH=/config/base_config.json
+      # - SILO_API_TOKEN_FILE=/config/token.txt
+      # - SILO_SECCURE_PASSPHRASE_FILE=/config/seccure_key.txt
+      # - SILO_LOG_IN_DIR=/logs
+      # - SILO_LOG_OUT_DIR=/logs
+
+      # Optional: Override configuration settings
+      # - SILO_API_ENDPOINT=extapi.authentic8.com
+      # - SILO_API_DOWNLOAD=true
+      # - SILO_LOG_TYPE=ENC
+      # - SILO_DATE_START=2024-01-01
+      # - SILO_FETCH_NUM_DAYS=7
+      # - SILO_SECCURE_DECRYPT=false
+      # - SILO_SECCURE_SHOW_PUBKEY=false
+      # - SILO_OUTPUT_CSV=false
+      # - SILO_OUTPUT_JSON=true
+      # - SILO_OUTPUT_CONSOLE=true
+      # - SILO_WEB_INTERFACE=true
+      # - SILO_WEB_INTERFACE_PORT=8080
+
+    # Uncomment if web interface is enabled
+    # ports:
+    #   - "8080:8080"
+
+    restart: unless-stopped
