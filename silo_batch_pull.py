@@ -10,26 +10,84 @@ from datetime import timedelta
 from pathlib import Path
 import re
 
-default_settings = {
-   "settings_path"    : "silo_config.json",     #// Path to config file. Useful for concerns about leaking configuration.
-   "log_in_directory" : "logs",                 #// Directory where logs are imported from (if api_download_logs == false)
-   "log_out_directory" : "logs",                #// Directory where post-processed logs will go
-   "api_download_logs": True,                   #// Process logs from...? True = Silo, false = logs directory
-   "api_endpoint" : 'extapi.authentic8.com',    #// Should usually be 'extapi.authentic8.com'
-   "api_org_name" : "",                         #// Organization name shown in the Silo Admin portal
-   "api_token_file" : "token.txt",              #// File containing 32-char API key (login credential) provided by Silo.
-   "log_type" : 'ENC',                          #// Log type to download or import. See Silo docs for other options (like 'LOG')
-   "date_start": "",                            #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'
-   "fetch_num_days" : 7,                        #// How many days back from start date to download
-   "seccure_passphrase_file": "seccure_key.txt",#// File containing seccure passphrase. Only required for seccure options.
-   "seccure_decrypt_logs" : False,              #// Decrypt logs during processing?
-   "seccure_show_pubkey": False,                #// Show the pubkey for the passphrase file?   
-   "output_csv" : False,                        #// Post-process: Save results to .CSV files?
-   "output_json" : True,                        #// Post-process: Save results to .JSON files?
-   "output_console": True,                      #// Post-process: Show logs on console window?
-   "web_interface": True,                       #// Activate web interface
-   "web_interface_port": 8080                   #// Listen port for web interface
+# Detect if running in Docker container
+IS_DOCKER = os.environ.get('DOCKER_CONTAINER', '').lower() in ('true', '1', 'yes')
+
+# Docker path mapping: maps local relative paths to Docker absolute paths
+DOCKER_PATH_MAP = {
+    'logs': '/logs',
+    'base_config.json': '/config/base_config.json',
+    'token.txt': '/config/token.txt',
+    'seccure_key.txt': '/config/seccure_key.txt'
 }
+
+def get_env_path(env_var, default_local):
+    """
+    Get path from environment variable or return appropriate default based on runtime mode.
+
+    Args:
+        env_var: Environment variable name to check
+        default_local: Default path when running locally
+
+    Returns:
+        Path string - uses DOCKER_PATH_MAP for known paths in Docker mode,
+        otherwise prepends /config for relative paths
+    """
+    env_value = os.environ.get(env_var)
+    if env_value:
+        return env_value
+
+    if IS_DOCKER:
+        # Check if we have a specific Docker mapping for this path
+        if default_local in DOCKER_PATH_MAP:
+            return DOCKER_PATH_MAP[default_local]
+        # Otherwise, if it's a relative path, prepend /config
+        elif not default_local.startswith('/'):
+            return os.path.join('/config', default_local)
+
+    return default_local
+
+def get_env_value(env_var, default_value, value_type=str):
+    """Get configuration value from environment variable with type conversion"""
+    env_value = os.environ.get(env_var)
+    if env_value is None:
+        return default_value
+
+    if value_type == bool:
+        return env_value.lower() in ('true', '1', 'yes')
+    elif value_type == int:
+        try:
+            return int(env_value)
+        except ValueError:
+            return default_value
+    else:
+        return env_value
+
+default_settings = {
+   "settings_path"    : get_env_path('SILO_SETTINGS_PATH', "base_config.json"),     #// Path to config file. Useful for concerns about leaking configuration. ENV: SILO_SETTINGS_PATH
+   "log_in_directory" : get_env_path('SILO_LOG_IN_DIR', "logs"),                    #// Directory where logs are imported from (if api_download_logs == false). ENV: SILO_LOG_IN_DIR
+   "log_out_directory" : get_env_path('SILO_LOG_OUT_DIR', "logs"),                  #// Directory where post-processed logs will go. ENV: SILO_LOG_OUT_DIR
+   "api_download_logs": get_env_value('SILO_API_DOWNLOAD', True, bool),             #// Process logs from...? True = Silo, false = logs directory. ENV: SILO_API_DOWNLOAD
+   "api_endpoint" : get_env_value('SILO_API_ENDPOINT', 'extapi.authentic8.com'),    #// Should usually be 'extapi.authentic8.com'. ENV: SILO_API_ENDPOINT
+   "api_org_name" : get_env_value('SILO_API_ORG_NAME', ""),                         #// Organization name shown in the Silo Admin portal. ENV: SILO_API_ORG_NAME
+   "api_token_file" : get_env_path('SILO_API_TOKEN_FILE', "token.txt"),             #// File containing 32-char API key (login credential) provided by Silo. ENV: SILO_API_TOKEN_FILE
+   "log_type" : get_env_value('SILO_LOG_TYPE', 'ENC'),                              #// Log type to download or import. See Silo docs for other options (like 'LOG'). ENV: SILO_LOG_TYPE
+   "date_start": get_env_value('SILO_DATE_START', ""),                              #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'. ENV: SILO_DATE_START
+   "fetch_num_days" : get_env_value('SILO_FETCH_NUM_DAYS', 7, int),                 #// How many days back from start date to download. ENV: SILO_FETCH_NUM_DAYS
+   "seccure_passphrase_file": get_env_path('SILO_SECCURE_PASSPHRASE_FILE', "seccure_key.txt"), #// File containing seccure passphrase. Only required for seccure options. ENV: SILO_SECCURE_PASSPHRASE_FILE
+   "seccure_decrypt_logs" : get_env_value('SILO_SECCURE_DECRYPT', False, bool),     #// Decrypt logs during processing? ENV: SILO_SECCURE_DECRYPT
+   "seccure_show_pubkey": get_env_value('SILO_SECCURE_SHOW_PUBKEY', False, bool),   #// Show the pubkey for the passphrase file? ENV: SILO_SECCURE_SHOW_PUBKEY
+   "output_csv" : get_env_value('SILO_OUTPUT_CSV', False, bool),                    #// Post-process: Save results to .CSV files? ENV: SILO_OUTPUT_CSV
+   "output_json" : get_env_value('SILO_OUTPUT_JSON', True, bool),                   #// Post-process: Save results to .JSON files? ENV: SILO_OUTPUT_JSON
+   "output_console": get_env_value('SILO_OUTPUT_CONSOLE', True, bool),              #// Post-process: Show logs on console window? ENV: SILO_OUTPUT_CONSOLE
+   "web_interface": get_env_value('SILO_WEB_INTERFACE', True, bool),                #// Activate web interface. ENV: SILO_WEB_INTERFACE
+   "web_interface_port": get_env_value('SILO_WEB_INTERFACE_PORT', 8080, int)        #// Listen port for web interface. ENV: SILO_WEB_INTERFACE_PORT
+}
+
+if IS_DOCKER:
+    print("Running in Docker mode - config files from /config, logs from /logs")
+    print("Environment variables will override default settings")
+    print("######     Config file will override both.    ######")
 
 def usage_abort( extra='', settings=True ):
    print("####################################################################")
