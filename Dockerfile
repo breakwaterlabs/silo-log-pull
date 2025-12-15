@@ -6,15 +6,15 @@ ENV DOCKER_CONTAINER=true
 # Set working directory
 WORKDIR /app
 
-# Copy application file
-COPY silo_batch_pull.py /app/
-COPY config/docker_config.json /app/
-
 # Copy and install Python dependencies
 COPY requirements.txt ./requirements.txt
 RUN apk add --no-cache gcc musl-dev gmp-dev &&\
     pip install --no-cache-dir -r requirements.txt &&\
     mkdir -p /config /logs
+
+# Copy application file
+COPY silo_batch_pull.py /app/
+COPY config/docker_config.json /app/
 
 # Volume mounts for configuration and logs
 VOLUME ["/config", "/logs"]
