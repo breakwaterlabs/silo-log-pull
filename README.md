@@ -87,9 +87,95 @@ python -m pip install --no-index --find-links /path/to/dependencies/ -r /path/to
 
 ## Usage
 
+### Standard Usage
+
  1. Set up `silo_config.json`
  2. Ensure any api keys or seccure passphrases have been added to `tokens.txt` or `seccure_key.txt` as appropriate
  3. `python3 .\silo_batch_pull.py`
+
+### Docker Usage
+
+The script can run in a Docker container with configuration and logs stored in persistent volumes.
+
+#### Quick Start with Docker
+
+1. **Build the Docker image:**
+   ```bash
+   docker build -t silo-log-pull .
+   ```
+
+2. **Create local directories for config and logs:**
+   ```bash
+   mkdir -p config logs
+   ```
+
+3. **Add your configuration files to the `config` directory:**
+   - `config/base_config.json` - Main configuration file
+   - `config/token.txt` - Your Silo API token
+   - `config/seccure_key.txt` - Your seccure passphrase (if using decryption)
+
+4. **Run the container:**
+   ```bash
+   docker run --rm \
+     -v $(pwd)/config:/config \
+     -v $(pwd)/logs:/logs \
+     -e SILO_API_ORG_NAME="YourOrgName" \
+     silo-log-pull
+   ```
+
+#### Using Docker Compose
+
+1. **Create a `.env` file with your organization name:**
+   ```bash
+   echo "SILO_API_ORG_NAME=YourOrgName" > .env
+   ```
+
+2. **Start the service:**
+   ```bash
+   docker-compose up
+   ```
+
+#### Docker Environment Variables
+
+When running in Docker mode (detected via `DOCKER_CONTAINER=true`), the script automatically uses:
+- `/config` for configuration files (base_config.json, token.txt, seccure_key.txt)
+- `/logs` for log input/output
+
+All configuration settings can be overridden using environment variables:
+
+| Environment Variable | Description | Default (Docker) |
+|---------------------|-------------|------------------|
+| `SILO_SETTINGS_PATH` | Path to config file | `/config/base_config.json` |
+| `SILO_LOG_IN_DIR` | Log input directory | `/logs` |
+| `SILO_LOG_OUT_DIR` | Log output directory | `/logs` |
+| `SILO_API_DOWNLOAD` | Download from API (true/false) | `true` |
+| `SILO_API_ENDPOINT` | API endpoint | `extapi.authentic8.com` |
+| `SILO_API_ORG_NAME` | Organization name (required) | - |
+| `SILO_API_TOKEN_FILE` | API token file path | `/config/token.txt` |
+| `SILO_LOG_TYPE` | Log type (ENC, LOG, etc.) | `ENC` |
+| `SILO_DATE_START` | Start date (YYYY-MM-DD) | Today |
+| `SILO_FETCH_NUM_DAYS` | Days to fetch | `7` |
+| `SILO_SECCURE_PASSPHRASE_FILE` | Seccure passphrase file | `/config/seccure_key.txt` |
+| `SILO_SECCURE_DECRYPT` | Decrypt logs (true/false) | `false` |
+| `SILO_SECCURE_SHOW_PUBKEY` | Show public key (true/false) | `false` |
+| `SILO_OUTPUT_CSV` | Output CSV files (true/false) | `false` |
+| `SILO_OUTPUT_JSON` | Output JSON files (true/false) | `true` |
+| `SILO_OUTPUT_CONSOLE` | Display on console (true/false) | `true` |
+| `SILO_WEB_INTERFACE` | Enable web interface (true/false) | `true` |
+| `SILO_WEB_INTERFACE_PORT` | Web interface port | `8080` |
+
+**Example with environment variables:**
+```bash
+docker run --rm \
+  -v $(pwd)/config:/config \
+  -v $(pwd)/logs:/logs \
+  -e SILO_API_ORG_NAME="YourOrgName" \
+  -e SILO_FETCH_NUM_DAYS=30 \
+  -e SILO_DATE_START="2024-01-01" \
+  -e SILO_SECCURE_DECRYPT=true \
+  -e SILO_OUTPUT_CSV=true \
+  silo-log-pull
+```
 
 ## Roadmap
  - [x] Update filesystem code to use cross-OS native code (current code relies on Windows conventions)
