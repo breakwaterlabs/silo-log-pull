@@ -48,7 +48,6 @@ def get_env_path(env_var, default_local):
     return default_local
 
 def get_env_value(env_var, default_value, value_type=str):
-    """Get configuration value from environment variable with type conversion"""
     env_value = os.environ.get(env_var)
     if env_value is None:
         return default_value
@@ -110,13 +109,13 @@ def usage_abort( extra='', settings=True ):
 def create_settings_file(path, settings):
    try:
       if os.path.exists(path):
-         os.rename(path, path + ".bak")
+         os.rename(path, os.path.join(path, ".bak"))
       with open(path, "w") as jsonfile:
          jsonfile.write( json.dumps(settings, indent=4))
          jsonfile.close()
       print("Wrote settings file at " + path)
    except:
-      usage_abort("Could not create a backup of your settings at:\n  " + path + ".bak\n" + "\nEither fix your current settings file or delete the existing backup.", settings=False )
+      usage_abort("Could not create a backup of your settings at:\n  " + path._str + ".bak\n" + "\nEither fix your current settings file or delete the existing backup.", settings=False )
 
 def path_accessible(path, as_dir=False):
    if as_dir:
