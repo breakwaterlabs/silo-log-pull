@@ -1,53 +1,152 @@
 # silo-log-pull
 
-This script updates the example silo log script from https://support.authentic8.com/support/solutions/articles/16000027682.
+A Python script for downloading and processing Silo logs from Authentic8. This script provides an improved, production-ready alternative to the original Python 2 examples, with support for automated workflows, Docker containers, and separation of duties scenarios.
 
-The scripts there were written for python2 and are difficult to run today. In addition, they are not well suited to an automated process.
+## Features
 
-This script aims to fix that by providing configuration via a JSON file that can support a number of scenarios. In particular, this is designed to support traditional single-shot "download and decrypt", or more secure low-side download / high-side decrypt scenarios.
+- **Flexible Configuration** - JSON-based configuration with environment variable overrides
+- **Multiple Deployment Options** - Run with Python, Docker, or Podman
+- **Automated Workflows** - Designed for scheduled/unattended execution
+- **Separation of Duties** - Support for low-side download / high-side decrypt workflows
+- **Robust Error Handling** - Resilient to misconfiguration with helpful error messages
+- **Cross-Platform** - Works on Windows and Linux
 
-It also provides robust error handling and be resilient to misconfiguration.
+## Quick Start
 
-## Getting started
+Choose your platform and preferred method:
 
-Simply download the python script and run it. If you do not have a `config/silo_config.json`, the script will create one with default values. Note that you will be required to change at least one configuration for the script to launch, as by default it will have no customer org configured and no API key with which to download logs.
+### Windows
+- **[Windows with Rancher Desktop](docs/windows-rancher-desktop.md)** - Free container solution for business use
+- **[Windows with Python](docs/windows-python.md)** - Direct Python execution
 
-The script expects configuration files in the `config/` directory:
-- `config/silo_config.json` - Main configuration file
-- `config/token.txt` - Your Silo API token (32-character base64 string)
-- `config/seccure_key.txt` - Your seccure passphrase (only needed if using encryption features)
+### Linux
+- **[Linux Getting Started](docs/linux-getting-started.md)** - Docker, Podman, or Python options
 
-## Configuring the script
+### Basic Setup (All Platforms)
 
-The current options in `config/silo_config.json` are as follows (along with their current default values):
-```
+1. Download and extract this repository
+2. Create a `data/` directory for configuration and logs
+3. Copy an example config from `docs/example_configs/` to `data/silo_config.json`
+4. Add your API token to `data/token.txt`
+5. Edit `data/silo_config.json` to set your organization name
+6. Run the script (see platform guides above for details)
+
+The script uses a `data/` directory structure by default:
+- `data/silo_config.json` - Main configuration file
+- `data/token.txt` - Your Silo API token (32-character base64 string)
+- `data/seccure_key.txt` - Your seccure passphrase (only needed if using encryption)
+- `data/logs/` - Where logs are downloaded and processed
+
+## Configuration Reference
+
+### Configuration File Settings
+
+The script reads settings from `data/silo_config.json` by default. All settings are optional except `api_org_name`. Below are all available settings with their default values:
+
+```json
 {
-   "log_in_directory" : "logs",                       #// Directory where logs are imported from (if api_download_logs == false)
-   "log_out_directory" : "logs",                      #// Directory where post-processed logs will go
-   "api_download_logs": True,                         #// Process logs from...? True = Silo, false = logs directory
-   "api_endpoint" : 'extapi.authentic8.com',          #// Should usually be 'extapi.authentic8.com'
-   "api_org_name" : "",                               #// Organization name shown in the Silo Admin portal
-   "api_token_file" : "config/token.txt",             #// File containing 32-char API key (login credential) provided by Silo.
-   "log_type" : 'ENC',                                #// Log type to download or import. See Silo docs for other options (like 'LOG')
-   "date_start": "",                                  #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'
-   "fetch_num_days" : 7,                              #// How many days back from date_start to download
-   "seccure_passphrase_file": "config/seccure_key.txt", #// File containing seccure passphrase. Only required for seccure options.
-   "seccure_decrypt_logs" : False,                    #// Decrypt logs during processing?
-   "seccure_show_pubkey": False,                      #// Show the pubkey for the passphrase file?
-   "output_csv" : False,                              #// Post-process: Save results to .CSV files?
-   "output_json" : True,                              #// Post-process: Save results to .JSON files?
-   "output_console": True                             #// Post-process: Show logs on console window?
+   "data_dir": "data",
+   "settings_file": "silo_config.json",
+   "non_interactive": false,
+   "log_in_directory": "logs",
+   "log_out_directory": "logs",
+   "api_download_logs": true,
+   "api_endpoint": "extapi.authentic8.com",
+   "api_org_name": "",
+   "api_token_file": "token.txt",
+   "log_type": "ENC",
+   "date_start": "",
+   "fetch_num_days": 7,
+   "seccure_passphrase_file": "seccure_key.txt",
+   "seccure_decrypt_logs": false,
+   "seccure_show_pubkey": false,
+   "output_csv": false,
+   "output_json": true,
+   "output_console": true,
+   "web_interface": true,
+   "web_interface_port": 8080
 }
 ```
 
-## Installation
-This script requires Python 3. It has been tested on 3.6 and 3.12.
+### Setting Descriptions
 
-If any of the 'seccure_*' options are set to true (e.g. decryption), then the `seccure` python package is also required. It can be found on [Pypi](https://pypi.org/project/seccure/).
-Please note for offline installations that seccure has a number of sub-dependencies that may need to be moved over:
- - [six](https://pypi.org/project/six/)
- - [pycryptodome](https://pypi.org/project/pycryptodome/)
- - [gmpy2](https://pypi.org/project/gmpy2/)
+| Setting | Type | Description |
+|---------|------|-------------|
+| `data_dir` | string | Base directory for config files and logs. All relative paths are resolved from here. Default: `"data"` |
+| `settings_file` | string | Path to config file (relative to `data_dir` if not absolute). Default: `"silo_config.json"` |
+| `non_interactive` | boolean | Disable interactive prompts for automated execution. Default: `false` |
+| `log_in_directory` | string | Directory to import logs from when `api_download_logs` is false (relative to `data_dir` if not absolute). Default: `"logs"` |
+| `log_out_directory` | string | Directory where processed logs are saved (relative to `data_dir` if not absolute). Default: `"logs"` |
+| `api_download_logs` | boolean | If true, download logs from Silo API. If false, process existing logs from `log_in_directory`. Default: `true` |
+| `api_endpoint` | string | Silo API endpoint. Default: `"extapi.authentic8.com"` |
+| `api_org_name` | string | **Required.** Your organization name as shown in Silo Admin portal. |
+| `api_token_file` | string | File containing your API token (relative to `data_dir` if not absolute). Default: `"token.txt"` |
+| `log_type` | string | Log type to download. Options: `"ENC"` (encrypted), `"LOG"` (plaintext). Default: `"ENC"` |
+| `date_start` | string | Start date in `YYYY-MM-DD` format. Leave blank for today. Default: `""` |
+| `fetch_num_days` | integer | Number of days to fetch, counting back from `date_start`. Default: `7` |
+| `seccure_passphrase_file` | string | File containing seccure passphrase for decryption (relative to `data_dir` if not absolute). Default: `"seccure_key.txt"` |
+| `seccure_decrypt_logs` | boolean | Decrypt logs during processing. Requires seccure passphrase file. Default: `false` |
+| `seccure_show_pubkey` | boolean | Display the public key for your passphrase. Default: `false` |
+| `output_csv` | boolean | Save processed logs as CSV files. Default: `false` |
+| `output_json` | boolean | Save processed logs as JSON files. Default: `true` |
+| `output_console` | boolean | Display logs in console output. Default: `true` |
+| `web_interface` | boolean | Enable web interface (future feature). Default: `true` |
+| `web_interface_port` | integer | Port for web interface. Default: `8080` |
+
+### Environment Variable Overrides
+
+All settings can be overridden using environment variables with the format `SILO_<SETTING_NAME>` in uppercase:
+
+```bash
+export SILO_API_ORG_NAME="MyOrganization"
+export SILO_FETCH_NUM_DAYS=30
+export SILO_DATE_START="2024-01-01"
+export SILO_SECCURE_DECRYPT_LOGS=true
+```
+
+Environment variables are applied in this order (later overrides earlier):
+1. Script defaults
+2. Environment variables
+3. Configuration file settings
+
+### Path Resolution
+
+Paths in the configuration are resolved as follows:
+
+- **Absolute paths** (e.g., `C:\secrets\token.txt` or `/etc/silo/token.txt`) are used as-is
+- **Relative paths** (e.g., `token.txt` or `logs/`) are resolved relative to `data_dir`
+- The `data_dir` itself can be absolute or relative to the script location
+
+Example:
+- If `data_dir` is `"data"` and `api_token_file` is `"token.txt"`, the full path is `data/token.txt`
+- If `api_token_file` is `"/etc/silo/token.txt"`, that absolute path is used regardless of `data_dir`
+
+## Installation
+
+See the platform-specific guides for detailed installation instructions:
+- [Windows with Rancher Desktop](docs/windows-rancher-desktop.md)
+- [Windows with Python](docs/windows-python.md)
+- [Linux Getting Started](docs/linux-getting-started.md)
+
+### Requirements
+
+**For Docker/Podman:**
+- Docker or Podman container runtime
+- No Python installation required on host
+
+**For Python:**
+- Python 3.6 or later (tested on 3.6 and 3.12)
+- Optional: `seccure` package (only if using encryption features)
+
+Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+The `seccure` package has the following dependencies:
+- [six](https://pypi.org/project/six/)
+- [pycryptodome](https://pypi.org/project/pycryptodome/)
+- [gmpy2](https://pypi.org/project/gmpy2/)
 
 ### Troubleshooting Dependencies
 
@@ -92,101 +191,122 @@ python -m pip install --no-index --find-links /path/to/dependencies/ -r /path/to
 
 ## Usage
 
-### Standard Usage
+### Quick Usage
 
- 1. Set up `config/silo_config.json` (the script will create a template if it doesn't exist)
- 2. Add your API key to `config/token.txt`
- 3. If using encryption features, add your seccure passphrase to `config/seccure_key.txt`
- 4. Run: `python3 .\silo_batch_pull.py`
+**With Python:**
+```bash
+python3 silo_batch_pull.py
+```
 
-### Docker Usage
+**With Docker:**
+```bash
+docker build -t silo-log-pull .
+docker run --rm -v $(pwd)/data:/data silo-log-pull
+```
 
-The script can run in a Docker container with configuration and logs stored in persistent volumes.
+**With Docker Compose:**
+```bash
+docker-compose up
+```
 
-#### Quick Start with Docker
+For detailed usage instructions, see the platform-specific guides:
+- [Windows with Rancher Desktop](docs/windows-rancher-desktop.md)
+- [Windows with Python](docs/windows-python.md)
+- [Linux Getting Started](docs/linux-getting-started.md)
 
-1. **Build the Docker image:**
-   ```bash
-   docker build -t silo-log-pull .
-   ```
+### Usage Examples
 
-2. **Create local directory for config and logs:**
-   ```bash
-   mkdir -p config logs
-   ```
+#### Example 1: Download Last 30 Days of Encrypted Logs
 
-3. **Add your configuration files to the `config/` directory:**
-   - `config/silo_config.json` - Main configuration file (see example in `config/example_silo_config.json`)
-   - `config/token.txt` - Your Silo API token (32-character base64 string)
-   - `config/seccure_key.txt` - Your seccure passphrase (only if using decryption)
+Configuration file (`data/silo_config.json`):
+```json
+{
+   "api_org_name": "YourOrganization",
+   "fetch_num_days": 30,
+   "log_type": "ENC",
+   "seccure_decrypt_logs": false
+}
+```
 
-4. **Run the container, mounting your local config directory:**
-   ```bash
-   docker run --rm \
-     -v $(pwd)/config:/config \
-     -v $(pwd)/logs:/logs \
-     -e SILO_API_ORG_NAME="YourOrgName" \
-     silo-log-pull
-   ```
+#### Example 2: Download and Decrypt Logs
 
-   On Windows with PowerShell:
-   ```powershell
-   docker run --rm -v ${PWD}/config:/config -v ${PWD}/logs:/logs -e SILO_API_ORG_NAME="YourOrgName" silo-log-pull
-   ```
+Configuration file (`data/silo_config.json`):
+```json
+{
+   "api_org_name": "YourOrganization",
+   "fetch_num_days": 7,
+   "log_type": "ENC",
+   "seccure_decrypt_logs": true,
+   "seccure_show_pubkey": true,
+   "output_csv": true,
+   "output_json": true
+}
+```
 
-#### Using Docker Compose
+Make sure your seccure passphrase is in `data/seccure_key.txt`.
 
-1. **Create a `.env` file with your organization name:**
-   ```bash
-   echo "SILO_API_ORG_NAME=YourOrgName" > .env
-   ```
+#### Example 3: Process Existing Logs (No Download)
 
-2. **Start the service:**
-   ```bash
-   docker-compose up
-   ```
+Configuration file (`data/silo_config.json`):
+```json
+{
+   "api_download_logs": false,
+   "log_in_directory": "logs",
+   "log_out_directory": "logs_processed",
+   "seccure_decrypt_logs": true
+}
+```
 
-#### Docker Environment Variables
+Place encrypted log files in `data/logs/`, and they will be decrypted to `data/logs_processed/`.
 
-When running in Docker mode (detected via `DOCKER_CONTAINER=true`), the script automatically uses:
-- `/config` for configuration files (silo_config.json, token.txt, seccure_key.txt)
-- `/logs` for log input/output
+### Docker Usage Details
 
-All configuration settings can be overridden using environment variables:
+When running in Docker mode (detected via `DOCKER_CONTAINER=true`), the script automatically uses `/data` as the base directory for all configuration and log files.
 
-| Environment Variable | Description | Default (Docker) |
-|---------------------|-------------|------------------|
-| `SILO_SETTINGS_PATH` | Path to config file | `/config/silo_config.json` |
-| `SILO_LOG_IN_DIR` | Log input directory | `/logs` |
-| `SILO_LOG_OUT_DIR` | Log output directory | `/logs` |
-| `SILO_API_DOWNLOAD` | Download from API (true/false) | `true` |
-| `SILO_API_ENDPOINT` | API endpoint | `extapi.authentic8.com` |
-| `SILO_API_ORG_NAME` | Organization name (required) | - |
-| `SILO_API_TOKEN_FILE` | API token file path | `/config/token.txt` |
-| `SILO_LOG_TYPE` | Log type (ENC, LOG, etc.) | `ENC` |
-| `SILO_DATE_START` | Start date (YYYY-MM-DD) | Today |
-| `SILO_FETCH_NUM_DAYS` | Days to fetch | `7` |
-| `SILO_SECCURE_PASSPHRASE_FILE` | Seccure passphrase file | `/config/seccure_key.txt` |
-| `SILO_SECCURE_DECRYPT` | Decrypt logs (true/false) | `false` |
-| `SILO_SECCURE_SHOW_PUBKEY` | Show public key (true/false) | `false` |
-| `SILO_OUTPUT_CSV` | Output CSV files (true/false) | `false` |
-| `SILO_OUTPUT_JSON` | Output JSON files (true/false) | `true` |
-| `SILO_OUTPUT_CONSOLE` | Display on console (true/false) | `true` |
-| `SILO_WEB_INTERFACE` | Enable web interface (true/false) | `true` |
-| `SILO_WEB_INTERFACE_PORT` | Web interface port | `8080` |
+**Basic Docker Run:**
+```bash
+docker run --rm -v $(pwd)/data:/data silo-log-pull
+```
 
-**Example with environment variables:**
+**With Environment Variable Overrides:**
 ```bash
 docker run --rm \
-  -v $(pwd)/config:/config \
-  -v $(pwd)/logs:/logs \
-  -e SILO_API_ORG_NAME="YourOrgName" \
+  -v $(pwd)/data:/data \
   -e SILO_FETCH_NUM_DAYS=30 \
   -e SILO_DATE_START="2024-01-01" \
-  -e SILO_SECCURE_DECRYPT=true \
   -e SILO_OUTPUT_CSV=true \
   silo-log-pull
 ```
+
+**Windows PowerShell:**
+```powershell
+docker run --rm -v ${PWD}/data:/data silo-log-pull
+```
+
+## Example Configurations
+
+The `docs/example_configs/` directory contains ready-to-use configuration examples for common scenarios:
+
+### General One-Shot Download and Decrypt
+Location: `docs/example_configs/general-oneshot-download-and-decrypt/`
+
+For single-system deployments where logs are downloaded and decrypted in one process. This is suitable for most use cases where security allows keeping the API token and decryption key on the same system.
+
+### Two-Step Process: Low Side
+Location: `docs/example_configs/2-step_lowside/`
+
+For separation of duties workflows. This configuration downloads encrypted logs from the Silo API without decrypting them. The encrypted logs can then be transferred to a secure system for decryption.
+
+**Use case:** System has API access but should not have decryption keys.
+
+### Two-Step Process: High Side
+Location: `docs/example_configs/2-step_highside/`
+
+For separation of duties workflows. This configuration processes and decrypts logs that were previously downloaded on another system. No API connection is made.
+
+**Use case:** Secure system has decryption keys but no API access.
+
+See the [Example Configs README](docs/example_configs/README.md) for detailed information about using these configurations.
 
 ## Roadmap
  - [x] Update filesystem code to use cross-OS native code (current code relies on Windows conventions)
@@ -197,4 +317,4 @@ docker run --rm \
 See the LICENSE.md file for details.
 
 ## Project status
-Active as of 2024-02-06
+Active as of 2024-12-16
