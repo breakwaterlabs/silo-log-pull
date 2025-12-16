@@ -29,26 +29,31 @@ def get_env_value(env_var, default_value, value_type=str):
         return env_value
 
 default_settings = {
-   "config_dir"       : get_env_value('SILO_CONFIG_DIR', "config"),                          #// Directory containing config files. Used to resolve relative paths. ENV: SILO_CONFIG_DIR
-   "settings_file"    : get_env_value('SILO_settings_file', "silo_config.json"),             #// Path to config file (relative to config_dir if not absolute). ENV: SILO_settings_file
-   "log_in_directory" : get_env_value('SILO_LOG_IN_DIR', "logs"),                    #// Directory where logs are imported from (if api_download_logs == false). ENV: SILO_LOG_IN_DIR
-   "log_out_directory" : get_env_value('SILO_LOG_OUT_DIR', "logs"),                  #// Directory where post-processed logs will go. ENV: SILO_LOG_OUT_DIR
-   "api_download_logs": get_env_value('SILO_API_DOWNLOAD', True, bool),             #// Process logs from...? True = Silo, false = logs directory. ENV: SILO_API_DOWNLOAD
-   "api_endpoint" : get_env_value('SILO_API_ENDPOINT', 'extapi.authentic8.com'),    #// Should usually be 'extapi.authentic8.com'. ENV: SILO_API_ENDPOINT
-   "api_org_name" : get_env_value('SILO_API_ORG_NAME', ""),                         #// Organization name shown in the Silo Admin portal. ENV: SILO_API_ORG_NAME
-   "api_token_file" : get_env_value('SILO_API_TOKEN_FILE', "token.txt"),                    #// File containing 32-char API key (relative to config_dir if not absolute). ENV: SILO_API_TOKEN_FILE
-   "log_type" : get_env_value('SILO_LOG_TYPE', 'ENC'),                              #// Log type to download or import. See Silo docs for other options (like 'LOG'). ENV: SILO_LOG_TYPE
-   "date_start": get_env_value('SILO_DATE_START', ""),                              #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'. ENV: SILO_DATE_START
-   "fetch_num_days" : get_env_value('SILO_FETCH_NUM_DAYS', 7, int),                 #// How many days back from start date to download. ENV: SILO_FETCH_NUM_DAYS
-   "seccure_passphrase_file": get_env_value('SILO_SECCURE_PASSPHRASE_FILE', "seccure_key.txt"), #// File containing seccure passphrase (relative to config_dir if not absolute). ENV: SILO_SECCURE_PASSPHRASE_FILE
-   "seccure_decrypt_logs" : get_env_value('SILO_SECCURE_DECRYPT', False, bool),     #// Decrypt logs during processing? ENV: SILO_SECCURE_DECRYPT
-   "seccure_show_pubkey": get_env_value('SILO_SECCURE_SHOW_PUBKEY', False, bool),   #// Show the pubkey for the passphrase file? ENV: SILO_SECCURE_SHOW_PUBKEY
-   "output_csv" : get_env_value('SILO_OUTPUT_CSV', False, bool),                    #// Post-process: Save results to .CSV files? ENV: SILO_OUTPUT_CSV
-   "output_json" : get_env_value('SILO_OUTPUT_JSON', True, bool),                   #// Post-process: Save results to .JSON files? ENV: SILO_OUTPUT_JSON
-   "output_console": get_env_value('SILO_OUTPUT_CONSOLE', True, bool),              #// Post-process: Show logs on console window? ENV: SILO_OUTPUT_CONSOLE
-   "web_interface": get_env_value('SILO_WEB_INTERFACE', True, bool),                #// Activate web interface. ENV: SILO_WEB_INTERFACE
-   "web_interface_port": get_env_value('SILO_WEB_INTERFACE_PORT', 8080, int)        #// Listen port for web interface. ENV: SILO_WEB_INTERFACE_PORT
+   "config_dir"       : "config",           # Directory containing config files. Used to resolve relative paths.
+   "settings_file"    : "silo_config.json", # Path to config file (relative to config_dir if not absolute).
+   "log_in_directory" : "logs",             # Directory where logs are imported from (if api_download_logs == false).
+   "log_out_directory" : "logs",            # Directory where post-processed logs will go.
+   "api_download_logs": True,               # Process logs from...? True = Silo, false = logs directory.
+   "api_endpoint" : "extapi.authentic8.com", # Should usually be 'extapi.authentic8.com'.
+   "api_org_name" : "",                     # Organization name shown in the Silo Admin portal.
+   "api_token_file" : "token.txt",          # File containing 32-char API key (relative to config_dir if not absolute).
+   "log_type" : "ENC",                      # Log type to download or import. See Silo docs for other options (like 'LOG').
+   "date_start": "",                        # Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'.
+   "fetch_num_days" : 7,                    # How many days back from start date to download.
+   "seccure_passphrase_file": "seccure_key.txt", # File containing seccure passphrase (relative to config_dir if not absolute).
+   "seccure_decrypt_logs" : False,          # Decrypt logs during processing?
+   "seccure_show_pubkey": False,            # Show the pubkey for the passphrase file?
+   "output_csv" : False,                    # Post-process: Save results to .CSV files?
+   "output_json" : True,                    # Post-process: Save results to .JSON files?
+   "output_console": True,                  # Post-process: Show logs on console window?
+   "web_interface": True,                   # Activate web interface.
+   "web_interface_port": 8080               # Listen port for web interface.
 }
+# Apply environment variable overrides (ENV: SILO_<KEY_NAME>)
+for key in default_settings.keys():
+   env_var_name = 'SILO_' + key.upper()
+   value_type = type(default_settings[key])
+   default_settings[key] = get_env_value(env_var_name, default_settings[key], value_type)
 
 if IS_DOCKER:
     print("Running in Docker mode - config files from /config, logs from /logs")
