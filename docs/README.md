@@ -7,6 +7,11 @@
 - [Linux (Docker/Podman/Python)](linux-getting-started.md)
 - [Offline Systems](offline-systems.md)
 
+## Docker Images
+
+- [Using Pre-Built Docker Images](using-prebuilt-images.md)
+- [GitLab CI/CD Setup](gitlab-cicd-setup.md)
+
 ## Configuration
 
 - [Configuration Reference](configuration-reference.md)

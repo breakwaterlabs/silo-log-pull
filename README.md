@@ -103,11 +103,18 @@ For offline/air-gapped systems, see the [Offline Systems Guide](docs/offline-sys
 python3 silo_batch_pull.py
 ```
 
-**Docker:**
+**Docker (build locally):**
 ```bash
 docker build -t silo-log-pull .
 docker run --rm -v $(pwd)/data:/data silo-log-pull
 ```
+
+**Docker (use pre-built image):**
+```bash
+docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker run --rm -v $(pwd)/data:/data registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+```
+See [Using Pre-Built Images](docs/using-prebuilt-images.md) for details.
 
 **Docker Compose:**
 ```bash
