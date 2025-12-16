@@ -6,19 +6,17 @@ RUN pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.13-alpine
-ARG SILO_LOGS_DIR=/logs \
-    SILO_APP_DIR=/app
+ARG APP_DIR=/app \
+    LOGS_DIR=logs
 
 ENV DOCKER_CONTAINER=true \
     SILO_NON_INTERACTIVE=true \
-    SILO_CONFIG_DIR=/config \
-    SILO_LOG_IN_DIRECTORY=${SILO_LOGS_DIR} \
-    SILO_LOG_OUT_DIRECTORY=${SILO_LOGS_DIR}
+    SILO_DATA_DIR=/data
 
 COPY --from=builder /install /usr/local
 WORKDIR ${SILO_APP_DIR}
 COPY silo_batch_pull.py ${SILO_APP_DIR}
-RUN mkdir -p ${SILO_CONFIG_DIR} ${SILO_LOGS_DIR}
-VOLUME [${SILO_CONFIG_DIR}, ${SILO_LOGS_DIR}]
+RUN mkdir -p ${SILO_DATA_DIR} ${SILO_DATA_DIR}/${LOGS_DIR}
+VOLUME [${SILO_DATA_DIR}]
 
 ENTRYPOINT ["python", "silo_batch_pull.py"]
