@@ -12,56 +12,15 @@ This guide will help you set up and run silo-log-pull on Linux using either Dock
 
 ---
 
-## Initial Setup (All Methods)
+## Initial Setup
 
-First, download and extract the repository, then configure your settings:
+1. Download and extract the repository
+2. Configure your settings per the [Configuration Reference](configuration-reference.md#initial-configuration-steps)
 
-1. **Download and extract the repository:**
-   ```bash
-   wget https://github.com/yourusername/silo-log-pull/archive/refs/heads/main.zip
-   unzip main.zip
-   cd silo-log-pull-main
-   ```
+Then choose a deployment method:
 
-2. **Edit the configuration file:**
-
-   The `app/data/` directory already contains an [`example_silo_config.json`](../app/data/example_silo_config.json) file. Edit this file to set your organization name and adjust any other settings you need:
-
-   ```bash
-   nano app/data/silo_config.json
-   ```
-
-   Set `"api_org_name"` to your organization name, save and exit.
-
-
-3. **(Optional) Add API token for log download:**
-
-   Log download from the internet requires an API key from Authentic8 in `token.txt`. See [`example_token.txt`](../app/data/example_token.txt) for format:
-
-   ```bash
-   nano app/data/token.txt
-   ```
-
-   Paste your token, save and exit.
-
-4. **(Optional) Add seccure passphrase if using encryption:**
-
-   Decrypting encrypted logs requires a seccure decryption passphrase. See [`example_seccure_key.txt`](../../app/data/example_seccure_key.txt) for format:
-
-   ```bash
-   nano app/data/seccure_key.txt
-   ```
-
-   Paste in your plaintext passphrase, save and exit.
-
----
-
-See the [command reference](configuration-reference.md) and the [general oneshot configuration example](example_configs/general-oneshot-download-and-decrypt/) for configuration help.
-
-**Once you have completed this initial setup, Choose your deployment method:**
-
-- [**Docker**](#option-1-using-docker) - Standard container runtime, widely used
-- [**Podman**](#option-2-using-podman) - Daemonless container engine, drop-in Docker replacement, rootless capable
+- [**Docker**](#option-1-using-docker) - Standard container runtime
+- [**Podman**](#option-2-using-podman) - Daemonless, rootless-capable drop-in replacement for Docker
 - [**Python**](#option-3-using-python-directly) - Direct execution without containers
 
 
@@ -96,32 +55,23 @@ Log out and back in for group changes to take effect.
 
 ### Build and Run
 
-After completing the [Initial Setup](#initial-setup-all-methods) above:
+```bash
+# Build locally
+docker build -t silo-log-pull .
 
-1. **Build or pull the Docker image:**
-   ```bash
-   # EITHER: Build locally...
-   docker build -t silo-log-pull .
+# Or pull from registry
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 
-   # OR: Pull from GitLab...
-   docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+# Or load from tar file (for offline systems)
+docker image load -i silo-log-pull.tar
+```
 
-   # OR: Load the container image from a tar file
-   docker image load -i silo-log-pull.tar
+Run the container:
+```bash
+docker run --rm -v $(pwd)/data:/data silo-log-pull
+```
 
-   # Then confirm that the image exists on your system:
-   docker images
-   ```
-
-2. **Run the container:**
-   ```bash
-   docker run --rm -v $(pwd)/data:/data silo-log-pull
-   ```
-
-3. **View your logs:**
-   ```bash
-   ls -lh data/logs/
-   ```
+Logs are written to `data/logs/`.
 
 ---
 
@@ -171,32 +121,13 @@ sudo dnf install python3 python3-pip python3-devel gcc gmp-devel
 
 ### Set Up and Run
 
-After completing the [Initial Setup](#initial-setup-all-methods) above:
+```bash
+cd app
+pip3 install -r requirements.txt  # Required for encryption features
+python3 silo_batch_pull.py
+```
 
-1. **Navigate to the app directory:**
-   ```bash
-   cd app
-   ```
-
-2. **Install Python dependencies (if using encryption):**
-   ```bash
-   pip3 install -r requirements.txt
-   ```
-
-   For system-wide installation, use sudo. For user installation:
-   ```bash
-   pip3 install --user -r requirements.txt
-   ```
-
-3. **Run the script:**
-   ```bash
-   python3 silo_batch_pull.py
-   ```
-
-4. **View your logs:**
-   ```bash
-   ls -lh data/logs/
-   ```
+Logs are written to `data/logs/`.
 
 ---
 
@@ -311,23 +242,20 @@ sudo systemctl enable --now silo-log-pull.timer
 
 ### Override Settings with Environment Variables
 
-Override any configuration setting without editing files:
+Override configuration settings at runtime using environment variables:
 
 ```bash
-docker run --rm \
-  -v $(pwd)/data:/data \
+docker run --rm -v $(pwd)/data:/data \
   -e SILO_DATE_START="2024-01-01" \
   -e SILO_FETCH_NUM_DAYS=30 \
-  -e SILO_OUTPUT_CSV=true \
   silo-log-pull
 ```
 
-Available environment variables use the format `SILO_<SETTING_NAME>` in uppercase. See the main README for a complete list.
+See [Environment Variable Overrides](configuration-reference.md#environment-variable-overrides) for details.
 
 ---
 
 ## Next Steps
 
-- Review the [Configuration Reference](../README.md#configuring-the-script) for all available settings
-- Check out [Example Configs](example_configs/README.md) for different usage scenarios
-- Set up automated scheduled pulls using cron or systemd
+- Review the [Configuration Reference](configuration-reference.md) for all available settings
+- See [Example Configs](example_configs/) for different usage scenarios

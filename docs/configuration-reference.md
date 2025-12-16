@@ -7,42 +7,19 @@ This document provides detailed information about all configuration settings ava
 By default, the script looks for `data/silo_config.json`. You can override this using the `SILO_DATA_DIR` and `SILO_SETTINGS_FILE` environment variables.
 
 ## Initial Configuration Steps
-1. **Download the script package and set up locally.** See the platform-specific help guides on doing this.
-2. **Edit the configuration file:**
 
-   The `app/data/` directory already contains an [`example_silo_config.json`](../app/data/example_silo_config.json) file. Edit this file to set your organization name and adjust any other settings you need:
+After downloading and extracting the repository, configure your environment:
 
-   ```bash
-   nano app/data/silo_config.json
-   ```
+1. **Edit the configuration file:**
+   Copy [`app/data/example_silo_config.json`](../app/data/example_silo_config.json) to `app/data/silo_config.json` and set `"api_org_name"` to your organization name. All other settings have sensible defaults.
 
-   Set `"api_org_name"` to your organization name, save and exit.
+2. **(Optional) Add API token:**
+   If downloading logs from the API, create `app/data/token.txt` containing your 32-character API token. See [`example_token.txt`](../app/data/example_token.txt) for format.
 
+3. **(Optional) Add seccure passphrase:**
+   If decrypting logs, create `app/data/seccure_key.txt` containing your passphrase. See [`example_seccure_key.txt`](../app/data/example_seccure_key.txt) for format.
 
-3. **(Optional) Add API token for log download:**
-
-   Log download from the internet requires an API key from Authentic8 in `token.txt`. See [`example_token.txt`](../app/data/example_token.txt) for format:
-
-   ```bash
-   nano app/data/token.txt
-   ```
-
-   Paste your token, save and exit.
-
-4. **(Optional) Add seccure passphrase if using encryption:**
-
-   Decrypting encrypted logs requires a seccure decryption passphrase. See [`example_seccure_key.txt`](../../app/data/example_seccure_key.txt) for format:
-
-   ```bash
-   nano app/data/seccure_key.txt
-   ```
-
-   Paste in your plaintext passphrase, save and exit.
-
----
-
-See the [command reference](configuration-reference.md) and the [general oneshot configuration example](example_configs/general-oneshot-download-and-decrypt/) for configuration help.
-
+See [example configurations](example_configs/) for common usage patterns.
 
 ## All Available Settings
 
