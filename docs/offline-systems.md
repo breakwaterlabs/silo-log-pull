@@ -243,7 +243,7 @@ sudo dnf install gmp-devel python3-devel gcc
 
 **Ubuntu/Debian:**
 ```bash
-sudo apt-get install libgmp-dev python3-dev gcc
+sudo apt install libgmp-dev python3-dev gcc
 ```
 
 If you can't install system packages, consider using Docker instead - it includes all required libraries.

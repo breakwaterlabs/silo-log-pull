@@ -24,8 +24,8 @@ This guide will help you set up and run silo-log-pull on Linux using either Dock
 ### Ubuntu/Debian
 
 ```bash
-sudo apt-get update
-sudo apt-get install docker.io docker-compose
+sudo apt update
+sudo apt install docker.io docker-compose
 sudo systemctl enable --now docker
 sudo usermod -aG docker $USER
 ```
@@ -106,8 +106,8 @@ Podman is a daemonless container engine that's compatible with Docker commands. 
 ### Ubuntu/Debian
 
 ```bash
-sudo apt-get update
-sudo apt-get install podman
+sudo apt update
+sudo apt install podman
 ```
 
 ### RHEL/CentOS/Fedora
@@ -174,7 +174,7 @@ podman --version
 Podman can use docker-compose files with podman-compose:
 
 ```bash
-sudo dnf install podman-compose  # or apt-get on Ubuntu
+sudo dnf install podman-compose  # or apt on Ubuntu
 podman-compose up
 ```
 
@@ -193,8 +193,8 @@ docker-compose up  # Will use podman if docker is not installed
 ### Ubuntu/Debian
 
 ```bash
-sudo apt-get update
-sudo apt-get install python3 python3-pip python3-dev gcc libgmp-dev
+sudo apt update
+sudo apt install python3 python3-pip python3-dev gcc libgmp-dev
 ```
 
 ### RHEL/CentOS/Fedora
@@ -290,7 +290,7 @@ If gmpy2 fails to install, ensure development tools are installed:
 
 **Ubuntu/Debian:**
 ```bash
-sudo apt-get install build-essential libgmp-dev
+sudo apt install build-essential libgmp-dev
 ```
 
 **RHEL/CentOS/Fedora:**
