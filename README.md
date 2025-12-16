@@ -26,7 +26,9 @@ A Python script for downloading and processing Silo logs from Authentic8. Provid
 
 ## Getting Started
 
-### 1. Choose Your Platform Guide
+**→ [Complete Documentation Hub](docs/README.md)** - Browse all guides and documentation
+
+### Quick Links to Platform Guides
 
 **Windows:**
 - [Windows with Rancher Desktop](docs/windows-rancher-desktop.md) - Free container solution for business use
