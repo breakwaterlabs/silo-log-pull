@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-#from getopt import getopt # Old school to support Python < 2.7
 import json
 import os
 import sys
@@ -46,8 +45,6 @@ default_settings = {
    "output_csv" : False,                    # Post-process: Save results to .CSV files?
    "output_json" : True,                    # Post-process: Save results to .JSON files?
    "output_console": True,                  # Post-process: Show logs on console window?
-   "web_interface": True,                   # Activate web interface.
-   "web_interface_port": 8080               # Listen port for web interface.
 }
 # Apply environment variable overrides (ENV: SILO_<KEY_NAME>)
 
@@ -183,8 +180,6 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
          input("Press enter to continue...")
       print("\n\n")
 
-#in_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_in_directory"]))
-#out_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_out_directory"]))
 in_dir = config["log_in_directory"]
 out_dir = config["log_out_directory"]
 
