@@ -1,102 +1,17 @@
 # Offline and Air-Gapped Systems Guide
 
-This guide explains how to deploy silo-log-pull on systems without internet access. Docker is generally the easier option for offline deployments as you only need to transfer one container image rather than multiple Python dependencies.
+This guide covers deploying silo-log-pull on systems without internet access.
 
-## Option 1: Docker Image Transfer (Recommended for Offline Systems)
+## Container Image Transfer
 
-Docker images can be easily exported on a system with internet access and imported on the offline system.
+For container deployments, export the image on a connected system and import on the offline system. See [Building Images - Exporting for Offline Systems](building-images.md#exporting-images-for-offline-systems) for instructions.
 
-### On a System with Internet Access
-First ensure you have a working container runtime like docker or rancher-desktop. See the [Windows Rancher Desktop guide](windows-rancher-desktop.md) for details on Windows.
+On the offline system after importing:
+1. Configure per the [Configuration Reference](configuration-reference.md#initial-configuration-steps)
+2. See the [2-step High side](example_configs/2-step_highside/) example configuration for typical air-gapped setups
+3. Run: `docker run --rm -v $(pwd)/data:/data silo-log-pull`
 
-#### 1. Build or Pull the Image
-
-Build the image:
-```bash
-docker build -t silo-log-pull .
-```
-
-Or if you're using a pre-built image:
-```bash
-docker pull your-registry/silo-log-pull:latest
-docker tag your-registry/silo-log-pull:latest silo-log-pull
-```
-
-#### 2. Export the Image to a TAR File
-
-```bash
-docker save silo-log-pull -o silo-log-pull.tar
-```
-
-This creates a `silo-log-pull.tar` file containing the entire image.
-
-#### 3. Verify the Export
-
-Check the file size (should be 100-200 MB):
-```bash
-ls -lh silo-log-pull.tar
-```
-
-#### 4. Transfer to Offline System
-
-Transfer the TAR file using approved media:
-- USB drive
-- CD/DVD
-- Approved file transfer mechanisms
-- Secure network file copy
-
-### On the Offline System
-
-#### 1. Import the Image
-
-```bash
-docker load -i silo-log-pull.tar
-```
-
-Verify the image loaded:
-```bash
-docker images | grep silo-log-pull
-```
-
-#### 2. Set Up Your Data Directory
-
-See the [2-step High side](example_configs/2-step_highside/) example configuration-- the configurations should work out of the box (depending on desired output format) and only require modifying the seccure_key.txt.
-
-Review your settings:
-```bash
-nano data/silo_config.json
-```
-
-Set your decryption key:
-```bash
-echo "YOUR_PASSPHRASE_HERE" > data/seccure_key.txt
-```
-
-#### 3. Run the Container
-
-```bash
-docker run --rm -v $(pwd)/data:/data silo-log-pull
-```
-
-### Using Podman Instead of Docker (Linux only)
-
-Podman works the same way, but with `podman` instead of `docker` in commands:
-
-**Export:**
-```bash
-# Export
-podman save silo-log-pull -o silo-log-pull.tar
-
-# import
-podman load -i silo-log-pull.tar
-
-# run
-podman run --rm -v $(pwd)/data:/data silo-log-pull
-```
-
----
-
-## Option 2: Python Dependencies Transfer
+## Python Dependencies Transfer
 
 If you prefer to run Python directly without containers, you'll need to transfer the Python dependencies. From the root of the downloaded silo-log-pull:
 
