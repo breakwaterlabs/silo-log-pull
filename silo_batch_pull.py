@@ -17,7 +17,6 @@ def get_env_value(env_var, default_value, value_type=str):
     env_value = os.environ.get(env_var)
     if env_value is None:
         return default_value
-
     if value_type == bool:
         return env_value.lower() in ('true', '1', 'yes')
     elif value_type == int:
@@ -31,6 +30,7 @@ def get_env_value(env_var, default_value, value_type=str):
 default_settings = {
    "config_dir"       : "config",           # Directory containing config files. Used to resolve relative paths.
    "settings_file"    : "silo_config.json", # Path to config file (relative to config_dir if not absolute).
+   "non_interactive"  : False,            # Don't use interactive prompts
    "log_in_directory" : "logs",             # Directory where logs are imported from (if api_download_logs == false).
    "log_out_directory" : "logs",            # Directory where post-processed logs will go.
    "api_download_logs": True,               # Process logs from...? True = Silo, false = logs directory.
@@ -50,10 +50,12 @@ default_settings = {
    "web_interface_port": 8080               # Listen port for web interface.
 }
 # Apply environment variable overrides (ENV: SILO_<KEY_NAME>)
+
 for key in default_settings.keys():
    env_var_name = 'SILO_' + key.upper()
    value_type = type(default_settings[key])
    default_settings[key] = get_env_value(env_var_name, default_settings[key], value_type)
+config=default_settings
 
 if IS_DOCKER:
     print("Running in Docker mode - config files from /config, logs from /logs")
@@ -75,7 +77,7 @@ def usage_abort( extra='', settings=True ):
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
    print("\nPlease see below for any specific error details:\n\n")
    print(extra)
-   if not IS_DOCKER:
+   if not config["non_interactive"]:
       input("\nPress enter to exit...")
    sys.exit()
 
@@ -121,8 +123,8 @@ def import_json_config(resolved_settings_filepath, defaults):
          jsonfile.close()
    else:
       create_settings_file(resolved_settings_filepath._str, defaults)
-      usage_abort("Settings file was not found, so created new at " + resolved_settings_filepath._str + ". Please set api_org_name in this file before re-running.")
-   # Check if an alternate file config path is given, and re-parse if so.
+      print("Settings file was not found, so created new at " + resolved_settings_filepath._str)
+      return defaults
    bad_settings = False
    for key in defaults.keys():
       usedefault=False
@@ -139,7 +141,7 @@ def import_json_config(resolved_settings_filepath, defaults):
       else:
          message = "(from config)"
       print( "Conf: {k:25s} = {s:25s} {m}".format(k = key, s = str(file_config[key]), m = message) )
-   if bad_settings and not IS_DOCKER:
+   if bad_settings and not config["non-interactive"]:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
       input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
       print("Creating fixed config file. A backup of your config file will be made.")
@@ -151,7 +153,6 @@ def import_json_config(resolved_settings_filepath, defaults):
    return file_config
 
 default_settings_file = resolve_paths(default_settings['config_dir'], default_settings['settings_file'])
-print(default_settings['config_dir'])
 config = import_json_config( default_settings_file, default_settings)
 config["api_token_file"] = resolve_paths(config["config_dir"], config["api_token_file"])
 config["seccure_passphrase_file"] = resolve_paths(config["config_dir"], config["seccure_passphrase_file"])
@@ -169,12 +170,12 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
       usage_abort("Your passphrase file is empty. Please make sure you have specified a passphrase.")
    if len(passphrase) < 10:
       print("\nWarning: Your passphrase is very short. Please make a new passphrase that meets NIST recommendations to avoid this message.")
-      if not IS_DOCKER:
+      if not config["non_interactive"]:
          input("Press enter to acknowledge.")
    if config["seccure_show_pubkey"]:
       pubkey = str(seccure.passphrase_to_pubkey(passphrase, curve=seccure_curve))
       print("\n\nConfig set to display pubkey.\n\n-----  Start Seccure Pubkey  -----\n" + pubkey + "\n------  End Seccure Pubkey  ------\n")
-      if not IS_DOCKER:
+      if not config["non_interactive"]:
          input("Press enter to continue...")
       print("\n\n")
 
