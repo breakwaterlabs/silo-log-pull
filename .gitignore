@@ -10,6 +10,7 @@ logs*
 # Specifically protect config directory secrets
 config
 logs
+data
 
 # Manually whitelist files we want.
 !requirements.txt

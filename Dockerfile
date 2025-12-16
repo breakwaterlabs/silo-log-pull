@@ -14,8 +14,8 @@ ENV DOCKER_CONTAINER=true \
     SILO_DATA_DIR=/data
 
 COPY --from=builder /install /usr/local
-WORKDIR ${SILO_APP_DIR}
-COPY silo_batch_pull.py ${SILO_APP_DIR}
+WORKDIR ${APP_DIR}
+COPY silo_batch_pull.py ${APP_DIR}
 RUN mkdir -p ${SILO_DATA_DIR} ${SILO_DATA_DIR}/${LOGS_DIR}
 VOLUME [${SILO_DATA_DIR}]
 

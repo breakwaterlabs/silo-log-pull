@@ -141,7 +141,7 @@ def import_json_config(resolved_settings_filepath, defaults):
       else:
          message = "(from config)"
       print( "Conf: {k:25s} = {s:25s} {m}".format(k = key, s = str(file_config[key]), m = message) )
-   if bad_settings and not config["non-interactive"]:
+   if bad_settings and not config["non_interactive"]:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
       input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
       print("Creating fixed config file. A backup of your config file will be made.")
