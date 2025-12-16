@@ -10,28 +10,33 @@ It also provides robust error handling and be resilient to misconfiguration.
 
 ## Getting started
 
-Simply download the python script and run it. If you do not have a `silo_config.json`, the script will create one with default values. Note that you will be required to change at least one configuration for the script to launch, as by default it will have no customer org configured and no API key with which to download logs.
+Simply download the python script and run it. If you do not have a `config/silo_config.json`, the script will create one with default values. Note that you will be required to change at least one configuration for the script to launch, as by default it will have no customer org configured and no API key with which to download logs.
+
+The script expects configuration files in the `config/` directory:
+- `config/silo_config.json` - Main configuration file
+- `config/token.txt` - Your Silo API token (32-character base64 string)
+- `config/seccure_key.txt` - Your seccure passphrase (only needed if using encryption features)
 
 ## Configuring the script
 
-The current options in `silo_config.json` are as follows (along with their current default values):
+The current options in `config/silo_config.json` are as follows (along with their current default values):
 ```
 {
-   "log_in_directory" : "logs",                 #// Directory where logs are imported from (if api_download_logs == false)
-   "log_out_directory" : "logs",                #// Directory where post-processed logs will go
-   "api_download_logs": True,                   #// Process logs from...? True = Silo, false = logs directory
-   "api_endpoint" : 'extapi.authentic8.com',    #// Should usually be 'extapi.authentic8.com'
-   "api_org_name" : "",                         #// Organization name shown in the Silo Admin portal
-   "api_token_file" : "token.txt",              #// File containing 32-char API key (login credential) provided by Silo.
-   "log_type" : 'ENC',                          #// Log type to download or import. See Silo docs for other options (like 'LOG')
-   "date_start": "",                            #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'
-   "fetch_num_days" : 7,                        #// How many days back from date_start to download
-   "seccure_passphrase_file": "seccure_key.txt",#// File containing seccure passphrase. Only required for seccure options.
-   "seccure_decrypt_logs" : False,              #// Decrypt logs during processing?
-   "seccure_show_pubkey": False,                #// Show the pubkey for the passphrase file?   
-   "output_csv" : False,                        #// Post-process: Save results to .CSV files?
-   "output_json" : True,                        #// Post-process: Save results to .JSON files?
-   "output_console": True                       #// Post-process: Show logs on console window?
+   "log_in_directory" : "logs",                       #// Directory where logs are imported from (if api_download_logs == false)
+   "log_out_directory" : "logs",                      #// Directory where post-processed logs will go
+   "api_download_logs": True,                         #// Process logs from...? True = Silo, false = logs directory
+   "api_endpoint" : 'extapi.authentic8.com',          #// Should usually be 'extapi.authentic8.com'
+   "api_org_name" : "",                               #// Organization name shown in the Silo Admin portal
+   "api_token_file" : "config/token.txt",             #// File containing 32-char API key (login credential) provided by Silo.
+   "log_type" : 'ENC',                                #// Log type to download or import. See Silo docs for other options (like 'LOG')
+   "date_start": "",                                  #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'
+   "fetch_num_days" : 7,                              #// How many days back from date_start to download
+   "seccure_passphrase_file": "config/seccure_key.txt", #// File containing seccure passphrase. Only required for seccure options.
+   "seccure_decrypt_logs" : False,                    #// Decrypt logs during processing?
+   "seccure_show_pubkey": False,                      #// Show the pubkey for the passphrase file?
+   "output_csv" : False,                              #// Post-process: Save results to .CSV files?
+   "output_json" : True,                              #// Post-process: Save results to .JSON files?
+   "output_console": True                             #// Post-process: Show logs on console window?
 }
 ```
 
@@ -89,9 +94,10 @@ python -m pip install --no-index --find-links /path/to/dependencies/ -r /path/to
 
 ### Standard Usage
 
- 1. Set up `silo_config.json`
- 2. Ensure any api keys or seccure passphrases have been added to `tokens.txt` or `seccure_key.txt` as appropriate
- 3. `python3 .\silo_batch_pull.py`
+ 1. Set up `config/silo_config.json` (the script will create a template if it doesn't exist)
+ 2. Add your API key to `config/token.txt`
+ 3. If using encryption features, add your seccure passphrase to `config/seccure_key.txt`
+ 4. Run: `python3 .\silo_batch_pull.py`
 
 ### Docker Usage
 
@@ -104,23 +110,28 @@ The script can run in a Docker container with configuration and logs stored in p
    docker build -t silo-log-pull .
    ```
 
-2. **Create local directories for config and logs:**
+2. **Create local directory for config and logs:**
    ```bash
    mkdir -p config logs
    ```
 
-3. **Add your configuration files to the `config` directory:**
-   - `config/base_config.json` - Main configuration file
-   - `config/token.txt` - Your Silo API token
-   - `config/seccure_key.txt` - Your seccure passphrase (if using decryption)
+3. **Add your configuration files to the `config/` directory:**
+   - `config/silo_config.json` - Main configuration file (see example in `config/example_silo_config.json`)
+   - `config/token.txt` - Your Silo API token (32-character base64 string)
+   - `config/seccure_key.txt` - Your seccure passphrase (only if using decryption)
 
-4. **Run the container:**
+4. **Run the container, mounting your local config directory:**
    ```bash
    docker run --rm \
      -v $(pwd)/config:/config \
      -v $(pwd)/logs:/logs \
      -e SILO_API_ORG_NAME="YourOrgName" \
      silo-log-pull
+   ```
+
+   On Windows with PowerShell:
+   ```powershell
+   docker run --rm -v ${PWD}/config:/config -v ${PWD}/logs:/logs -e SILO_API_ORG_NAME="YourOrgName" silo-log-pull
    ```
 
 #### Using Docker Compose
@@ -138,14 +149,14 @@ The script can run in a Docker container with configuration and logs stored in p
 #### Docker Environment Variables
 
 When running in Docker mode (detected via `DOCKER_CONTAINER=true`), the script automatically uses:
-- `/config` for configuration files (base_config.json, token.txt, seccure_key.txt)
+- `/config` for configuration files (silo_config.json, token.txt, seccure_key.txt)
 - `/logs` for log input/output
 
 All configuration settings can be overridden using environment variables:
 
 | Environment Variable | Description | Default (Docker) |
 |---------------------|-------------|------------------|
-| `SILO_SETTINGS_PATH` | Path to config file | `/config/base_config.json` |
+| `SILO_SETTINGS_PATH` | Path to config file | `/config/silo_config.json` |
 | `SILO_LOG_IN_DIR` | Log input directory | `/logs` |
 | `SILO_LOG_OUT_DIR` | Log output directory | `/logs` |
 | `SILO_API_DOWNLOAD` | Download from API (true/false) | `true` |

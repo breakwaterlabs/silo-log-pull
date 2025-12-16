@@ -8,7 +8,6 @@ WORKDIR /app
 
 # Copy application file
 COPY silo_batch_pull.py /app/
-COPY config/docker_config.json /app/
 
 # Copy and install Python dependencies
 COPY requirements.txt ./requirements.txt

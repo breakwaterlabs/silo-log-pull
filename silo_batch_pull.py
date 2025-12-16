@@ -16,9 +16,9 @@ IS_DOCKER = os.environ.get('DOCKER_CONTAINER', '').lower() in ('true', '1', 'yes
 # Docker path mapping: maps local relative paths to Docker absolute paths
 DOCKER_PATH_MAP = {
     'logs': '/logs',
-    'base_config.json': '/config/base_config.json',
-    'token.txt': '/config/token.txt',
-    'seccure_key.txt': '/config/seccure_key.txt'
+    'config/silo_config.json': '/config/silo_config.json',
+    'config/token.txt': '/config/token.txt',
+    'config/seccure_key.txt': '/config/seccure_key.txt'
 }
 
 def get_env_path(env_var, default_local):
@@ -63,17 +63,17 @@ def get_env_value(env_var, default_value, value_type=str):
         return env_value
 
 default_settings = {
-   "settings_path"    : get_env_path('SILO_SETTINGS_PATH', "base_config.json"),     #// Path to config file. Useful for concerns about leaking configuration. ENV: SILO_SETTINGS_PATH
+   "settings_path"    : get_env_path('SILO_SETTINGS_PATH', "config/silo_config.json"),     #// Path to config file. Useful for concerns about leaking configuration. ENV: SILO_SETTINGS_PATH
    "log_in_directory" : get_env_path('SILO_LOG_IN_DIR', "logs"),                    #// Directory where logs are imported from (if api_download_logs == false). ENV: SILO_LOG_IN_DIR
    "log_out_directory" : get_env_path('SILO_LOG_OUT_DIR', "logs"),                  #// Directory where post-processed logs will go. ENV: SILO_LOG_OUT_DIR
    "api_download_logs": get_env_value('SILO_API_DOWNLOAD', True, bool),             #// Process logs from...? True = Silo, false = logs directory. ENV: SILO_API_DOWNLOAD
    "api_endpoint" : get_env_value('SILO_API_ENDPOINT', 'extapi.authentic8.com'),    #// Should usually be 'extapi.authentic8.com'. ENV: SILO_API_ENDPOINT
    "api_org_name" : get_env_value('SILO_API_ORG_NAME', ""),                         #// Organization name shown in the Silo Admin portal. ENV: SILO_API_ORG_NAME
-   "api_token_file" : get_env_path('SILO_API_TOKEN_FILE', "token.txt"),             #// File containing 32-char API key (login credential) provided by Silo. ENV: SILO_API_TOKEN_FILE
+   "api_token_file" : get_env_path('SILO_API_TOKEN_FILE', "config/token.txt"),             #// File containing 32-char API key (login credential) provided by Silo. ENV: SILO_API_TOKEN_FILE
    "log_type" : get_env_value('SILO_LOG_TYPE', 'ENC'),                              #// Log type to download or import. See Silo docs for other options (like 'LOG'). ENV: SILO_LOG_TYPE
    "date_start": get_env_value('SILO_DATE_START', ""),                              #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'. ENV: SILO_DATE_START
    "fetch_num_days" : get_env_value('SILO_FETCH_NUM_DAYS', 7, int),                 #// How many days back from start date to download. ENV: SILO_FETCH_NUM_DAYS
-   "seccure_passphrase_file": get_env_path('SILO_SECCURE_PASSPHRASE_FILE', "seccure_key.txt"), #// File containing seccure passphrase. Only required for seccure options. ENV: SILO_SECCURE_PASSPHRASE_FILE
+   "seccure_passphrase_file": get_env_path('SILO_SECCURE_PASSPHRASE_FILE', "config/seccure_key.txt"), #// File containing seccure passphrase. Only required for seccure options. ENV: SILO_SECCURE_PASSPHRASE_FILE
    "seccure_decrypt_logs" : get_env_value('SILO_SECCURE_DECRYPT', False, bool),     #// Decrypt logs during processing? ENV: SILO_SECCURE_DECRYPT
    "seccure_show_pubkey": get_env_value('SILO_SECCURE_SHOW_PUBKEY', False, bool),   #// Show the pubkey for the passphrase file? ENV: SILO_SECCURE_SHOW_PUBKEY
    "output_csv" : get_env_value('SILO_OUTPUT_CSV', False, bool),                    #// Post-process: Save results to .CSV files? ENV: SILO_OUTPUT_CSV
@@ -103,7 +103,8 @@ def usage_abort( extra='', settings=True ):
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
    print("\nPlease see below for any specific error details:\n\n")
    print(extra)
-   input("\nPress enter to exit...")
+   if not IS_DOCKER:
+      input("\nPress enter to exit...")
    sys.exit()
 
 def create_settings_file(path, settings):
@@ -163,7 +164,10 @@ def import_json_config(config_path, defaults):
       print( "Conf: {k:25s} = {s:25s} {m}".format(k = key, s = str(file_config[key]), m = message) )
    if bad_settings:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
-      input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
+      if not IS_DOCKER:
+         input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
+      else:
+         print("Creating fixed config file. A backup of your config file will be made.")
       create_settings_file(fixedpath, file_config)
    if file_config.get("api_org_name") is None:
       usage_abort( 'api_org_name must be defined.' )
@@ -186,11 +190,13 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
       usage_abort("Your passphrase file is empty. Please make sure you have specified a passphrase.")
    if len(passphrase) < 10:
       print("\nWarning: Your passphrase is very short. Please make a new passphrase that meets NIST recommendations to avoid this message.")
-      input("Press enter to acknowledge.")
-   if config["seccure_show_pubkey"]:   
+      if not IS_DOCKER:
+         input("Press enter to acknowledge.")
+   if config["seccure_show_pubkey"]:
       pubkey = str(seccure.passphrase_to_pubkey(passphrase, curve=seccure_curve))
       print("\n\nConfig set to display pubkey.\n\n-----  Start Seccure Pubkey  -----\n" + pubkey + "\n------  End Seccure Pubkey  ------\n")
-      input("Press enter to continue...")
+      if not IS_DOCKER:
+         input("Press enter to continue...")
       print("\n\n")
 
 in_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_in_directory"]))

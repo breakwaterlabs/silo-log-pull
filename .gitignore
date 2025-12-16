@@ -6,6 +6,10 @@ seccure*
 *.csv
 *.json
 logs*
+silo_secrets
+
+# Specifically protect config directory secrets
+config
 
 # Manually whitelist files we want.
 !requirements.txt
