@@ -1,20 +1,20 @@
 # Using Pre-Built Docker Images
 
-If this repository is hosted on GitLab with CI/CD enabled, you can use pre-built Docker images instead of building locally.
+Pre-built Docker images are automatically published to the GitLab Container Registry. You can use these instead of building locally.
 
 ## Pulling Pre-Built Images
 
-### From GitLab Container Registry
+### Official Images from BreakwaterLabs
 
 ```bash
 # Pull the latest image
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 
 # Or pull a specific version
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:v1.0.0
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:v1.0.0
 
 # Or pull a specific commit
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:abc1234
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:abc1234
 ```
 
 ### Using the Pre-Built Image
@@ -22,18 +22,25 @@ docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:abc1234
 Once pulled, you can run it directly:
 
 ```bash
-docker run --rm -v $(pwd)/data:/data registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker run --rm -v $(pwd)/data:/data registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 ```
 
 Or tag it locally for convenience:
 
 ```bash
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
-docker tag registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest silo-log-pull:latest
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+docker tag registry.gitlab.com/breakwaterlabs/silo-log-pull:latest silo-log-pull:latest
 
 # Now you can use it with the simpler name
 docker run --rm -v $(pwd)/data:/data silo-log-pull:latest
 ```
+
+If you've forked this repo to your own GitLab account, your images will be published to:
+```
+registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+```
+
+Replace `breakwaterlabs` with your GitLab username in all examples above.
 
 ## Available Tags
 
@@ -51,10 +58,10 @@ To transfer a pre-built image to an offline system:
 
 ```bash
 # Pull the image
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 
 # Export to TAR file
-docker save registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest -o silo-log-pull.tar
+docker save registry.gitlab.com/breakwaterlabs/silo-log-pull:latest -o silo-log-pull.tar
 ```
 
 ### 2. Transfer and Import on Offline System
@@ -81,28 +88,28 @@ The GitLab CI/CD pipeline automatically:
 
 ### Build Status
 
-Check the pipeline status in your GitLab repository at:
+Check the pipeline status at:
 ```
-https://gitlab.com/YOUR_USERNAME/silo-log-pull/-/pipelines
+https://gitlab.com/breakwaterlabs/silo-log-pull/-/pipelines
 ```
 
 ### Registry Location
 
 View available images at:
 ```
-https://gitlab.com/YOUR_USERNAME/silo-log-pull/container_registry
+https://gitlab.com/breakwaterlabs/silo-log-pull/container_registry
 ```
 
 ## Verifying Image Authenticity
 
-To verify you're using an official image from the repository:
+To verify what image you're using:
 
 ```bash
 # Inspect the image
-docker inspect registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker inspect registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 
 # Check the creation date and labels
-docker inspect registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest | grep -i created
+docker inspect registry.gitlab.com/breakwaterlabs/silo-log-pull:latest | grep -i created
 ```
 
 ## Updating to Latest Version
@@ -111,23 +118,8 @@ To update to the latest version:
 
 ```bash
 # Pull the latest image
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
-
-# Remove old containers (if any are running)
-docker ps -a | grep silo-log-pull
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 
 # Run with the updated image
-docker run --rm -v $(pwd)/data:/data registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker run --rm -v $(pwd)/data:/data registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 ```
-
-## Building Locally vs Using Pre-Built
-
-**Use pre-built images when:**
-- You want to save time (no build required)
-- You want to ensure you're using the official, tested version
-- You're deploying to multiple systems
-
-**Build locally when:**
-- You've made custom modifications to the code
-- You're developing or testing changes
-- You want to verify the build process yourself

@@ -6,9 +6,9 @@
 # 3. Publishes to GitLab Container Registry on main branch and tags
 #
 # Images will be available at:
-#   registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
-#   registry.gitlab.com/YOUR_USERNAME/silo-log-pull:v1.0.0 (for version tags)
-#   registry.gitlab.com/YOUR_USERNAME/silo-log-pull:abc1234 (commit SHA)
+#   registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+#   registry.gitlab.com/breakwaterlabs/silo-log-pull:v1.0.0 (for version tags)
+#   registry.gitlab.com/breakwaterlabs/silo-log-pull:abc1234 (commit SHA)
 #
 # No configuration needed - this works out of the box with GitLab's built-in registry
 

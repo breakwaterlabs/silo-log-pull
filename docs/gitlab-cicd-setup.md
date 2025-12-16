@@ -22,14 +22,19 @@ The `.gitlab-ci.yml` file works out of the box with GitLab's built-in features. 
 
 ## Accessing Your Images
 
-Images are published to:
+Official images from this repository are published to:
 ```
-registry.gitlab.com/YOUR_USERNAME/YOUR_PROJECT_NAME:TAG
+registry.gitlab.com/breakwaterlabs/silo-log-pull:TAG
 ```
 
 For example:
 ```bash
-docker pull registry.gitlab.com/johndoe/silo-log-pull:latest
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+```
+
+If you've forked this repository, your images will be at:
+```
+registry.gitlab.com/YOUR_USERNAME/silo-log-pull:TAG
 ```
 
 ## Creating a Release
@@ -61,17 +66,19 @@ The pipeline will run automatically.
 
 ## Viewing Pipeline Status
 
-Check your pipeline status at:
+Check the pipeline status at:
 ```
-https://gitlab.com/YOUR_USERNAME/YOUR_PROJECT_NAME/-/pipelines
+https://gitlab.com/breakwaterlabs/silo-log-pull/-/pipelines
 ```
 
 ## Viewing Available Images
 
 Browse published images at:
 ```
-https://gitlab.com/YOUR_USERNAME/YOUR_PROJECT_NAME/container_registry
+https://gitlab.com/breakwaterlabs/silo-log-pull/container_registry
 ```
+
+(If you've forked: `https://gitlab.com/YOUR_USERNAME/silo-log-pull/container_registry`)
 
 ## Image Tags
 
@@ -105,30 +112,15 @@ docker pull registry.gitlab.com/YOUR_USERNAME/YOUR_PROJECT_NAME:latest
 
 ### For Users
 
-Update your platform guides to reference the pre-built images:
+Use the pre-built images instead of building locally:
 
 ```bash
 # Instead of building locally:
 docker build -t silo-log-pull .
 
-# Use the pre-built image:
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+# Use the official pre-built image:
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 ```
-
-### For Offline Systems
-
-1. Pull the image on a system with internet:
-   ```bash
-   docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
-   docker save registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest -o silo-log-pull.tar
-   ```
-
-2. Transfer `silo-log-pull.tar` to offline system
-
-3. Load on offline system:
-   ```bash
-   docker load -i silo-log-pull.tar
-   ```
 
 ## Customizing the Pipeline
 

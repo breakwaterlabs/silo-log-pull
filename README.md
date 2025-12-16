@@ -111,8 +111,8 @@ docker run --rm -v $(pwd)/data:/data silo-log-pull
 
 **Docker (use pre-built image):**
 ```bash
-docker pull registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
-docker run --rm -v $(pwd)/data:/data registry.gitlab.com/YOUR_USERNAME/silo-log-pull:latest
+docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+docker run --rm -v $(pwd)/data:/data registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 ```
 See [Using Pre-Built Images](docs/using-prebuilt-images.md) for details.
 
