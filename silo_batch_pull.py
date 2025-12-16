@@ -162,12 +162,10 @@ def import_json_config(config_path, defaults):
       else:
          message = "(from config)"
       print( "Conf: {k:25s} = {s:25s} {m}".format(k = key, s = str(file_config[key]), m = message) )
-   if bad_settings:
+   if bad_settings and not IS_DOCKER:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
-      if not IS_DOCKER:
-         input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
-      else:
-         print("Creating fixed config file. A backup of your config file will be made.")
+      input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
+      print("Creating fixed config file. A backup of your config file will be made.")
       create_settings_file(fixedpath, file_config)
    if file_config.get("api_org_name") is None:
       usage_abort( 'api_org_name must be defined.' )
