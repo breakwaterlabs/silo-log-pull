@@ -1,137 +1,42 @@
 # silo-log-pull
 
-A Python script for downloading and processing Silo logs from Authentic8. Provides an improved, production-ready alternative to the original Python 2 examples with support for automated workflows, Docker containers, and separation of duties scenarios.
+A tool for downloading and processing Silo logs from Authentic8. Supports automated workflows, container deployment, and separation of duties scenarios.
 
 ## Features
 
+- Download and decrypt Silo audit logs
 - JSON-based configuration with environment variable overrides
-- Multiple deployment options: Python, Docker, or Podman
-- Designed for scheduled/unattended execution
-- Support for low-side download / high-side decrypt workflows
-- Cross-platform: Windows and Linux
+- Container and Python deployment options
+- Support for air-gapped and offline systems
 
-## Docker vs Python: Which Should I Use?
+## Quick Start
 
-**Use Docker/Podman if:**
-- You want isolated, reproducible deployments
-- You're on an offline/air-gapped system (easier to transfer one image than multiple Python dependencies)
-- You want to avoid Python dependency issues
-- You're already using containers in your environment
+1. **Pull the container image:**
+   ```bash
+   docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+   docker tag registry.gitlab.com/breakwaterlabs/silo-log-pull:latest silo-log-pull
+   ```
 
-**Use Python directly if:**
-- You don't want to install Docker/Podman
-- You're on a lightweight system without container support
-- You prefer simpler, direct execution
-- You're only downloading logs without decryption (no dependencies needed)
+2. **Download and extract this repository** to get the configuration templates.
 
-## Getting Started
+3. **Configure:** Copy `app/data/example_silo_config.json` to `app/data/silo_config.json` and set your organization name. Add your API token to `app/data/token.txt`.
 
-**→ [Complete Documentation Hub](docs/README.md)** - Browse all guides and documentation
+4. **Run:**
+   ```bash
+   cd app
+   docker run --rm -v $(pwd)/data:/data silo-log-pull
+   ```
 
-### Quick Links to Platform Guides
+Logs are written to `app/data/logs/`.
 
-**Windows:**
-- [Windows with Rancher Desktop](docs/windows-rancher-desktop.md) - Free container solution for business use
-- [Windows with Python](docs/windows-python.md) - Direct Python execution
+For Python deployment without containers, see the [Python Guide](docs/python-guide.md).
 
-**Linux:**
-- [Linux Getting Started](docs/linux-getting-started.md) - Docker, Podman, or Python options
+## Documentation
 
-**Offline/Air-Gapped Systems:**
-- [Offline Systems Guide](docs/offline-systems.md) - Transfer Docker images or Python dependencies
-
-### 2. Quick Setup Summary
-
-All methods follow this pattern:
-
-1. Download and extract this repository
-2. Navigate to the `app/` directory: `cd app`
-3. Add your configuration files to the `data/` directory (which already exists):
-   - `silo_config.json` (copy from `docs/example_configs/`)
-   - `token.txt` (your API token)
-   - `seccure_key.txt` (optional, for decryption)
-4. Edit `silo_config.json` to set your organization name
-5. Run the script
-
-All configs and output will end up in `app/data/`.
-
-### 3. Example Configurations
-
-Ready-to-use configs for common scenarios are in `docs/example_configs/`:
-- **general-oneshot-download-and-decrypt** - Single system, download and decrypt
-- **2-step_lowside** - Download encrypted logs (no decryption keys)
-- **2-step_highside** - Decrypt previously downloaded logs (no API access)
-
-See [Example Configs README](docs/example_configs/README.md) for details.
-
-## Configuration
-
-The script reads settings from `data/silo_config.json`. The only required setting is `api_org_name` (your Silo organization name). All other settings have sensible defaults.
-
-**Most common settings:**
-- `api_org_name` - Your organization name (required)
-- `fetch_num_days` - How many days of logs to download (default: 7)
-- `date_start` - Start date in YYYY-MM-DD format (default: today)
-- `seccure_decrypt_logs` - Decrypt logs during processing (default: false)
-- `output_csv` - Also save logs as CSV files (default: false)
-
-**See the complete [Configuration Reference](docs/configuration-reference.md)** for all 19 available settings, environment variable overrides, and path resolution details.
-
-## Requirements
-
-**Docker/Podman:**
-- Docker, Podman, or Rancher Desktop
-- No Python needed on host
-
-**Python:**
-- Python 3.6+ (tested on 3.6 and 3.12)
-- Dependencies: Only needed if using encryption features
-  ```bash
-  pip install -r requirements.txt
-  ```
-
-**For detailed installation instructions, see the platform guides above.**
-
-For offline/air-gapped systems, see the [Offline Systems Guide](docs/offline-systems.md).
-
-
-
-## Quick Usage Examples
-
-After navigating to the `app/` directory (`cd app`):
-
-**Python:**
-```bash
-python3 silo_batch_pull.py
-```
-
-**Docker (build locally):**
-```bash
-docker build -t silo-log-pull .
-docker run --rm -v $(pwd)/data:/data silo-log-pull
-```
-
-**Docker (use pre-built image):**
-```bash
-docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
-docker run --rm -v $(pwd)/data:/data registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
-```
-See [Using Pre-Built Images](docs/using-prebuilt-images.md) for details.
-
-**Docker Compose:**
-```bash
-docker-compose up
-```
-
-See the platform guides for detailed instructions and troubleshooting.
-
-## Roadmap
- - [x] Update filesystem code to use cross-OS native code (current code relies on Windows conventions)
- - [x] Support arbitrary date ranges
- - [x] Support alternate directories for import and download
+- **[Full Documentation](docs/README.md)** - All guides and references
+- **[Configuration Reference](docs/configuration-reference.md)** - All settings and options
+- **[Example Configs](docs/example_configs/)** - Ready-to-use configurations
 
 ## License
-See the LICENSE.md file for details.
 
-## Project status
-Active as of 2024-12-16
+See LICENSE.md for details.
