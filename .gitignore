@@ -11,6 +11,8 @@
 *.csv
 *.json
 *.txt
+*.tar*
+*.zip
 
 # Whitelist the default logs directory itself, but not subfiles
 !app/data/logs
