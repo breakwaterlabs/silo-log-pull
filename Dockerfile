@@ -7,6 +7,7 @@ RUN pip install --no-cache-dir --prefix=/install -r /tmp/requirements.txt
 # Stage 2: Runtime
 FROM python:3.13-alpine
 ENV DOCKER_CONTAINER=true
+ENV SILO_CONFIG_DIR=/config
 COPY --from=builder /install /usr/local
 WORKDIR /app
 COPY silo_batch_pull.py /app/
