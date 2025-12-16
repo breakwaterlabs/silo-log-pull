@@ -6,6 +6,44 @@ This document provides detailed information about all configuration settings ava
 
 By default, the script looks for `data/silo_config.json`. You can override this using the `SILO_DATA_DIR` and `SILO_SETTINGS_FILE` environment variables.
 
+## Initial Configuration Steps
+1. **Download the script package and set up locally.** See the platform-specific help guides on doing this.
+2. **Edit the configuration file:**
+
+   The `app/data/` directory already contains an [`example_silo_config.json`](../app/data/example_silo_config.json) file. Edit this file to set your organization name and adjust any other settings you need:
+
+   ```bash
+   nano app/data/silo_config.json
+   ```
+
+   Set `"api_org_name"` to your organization name, save and exit.
+
+
+3. **(Optional) Add API token for log download:**
+
+   Log download from the internet requires an API key from Authentic8 in `token.txt`. See [`example_token.txt`](../app/data/example_token.txt) for format:
+
+   ```bash
+   nano app/data/token.txt
+   ```
+
+   Paste your token, save and exit.
+
+4. **(Optional) Add seccure passphrase if using encryption:**
+
+   Decrypting encrypted logs requires a seccure decryption passphrase. See [`example_seccure_key.txt`](../../app/data/example_seccure_key.txt) for format:
+
+   ```bash
+   nano app/data/seccure_key.txt
+   ```
+
+   Paste in your plaintext passphrase, save and exit.
+
+---
+
+See the [command reference](configuration-reference.md) and the [general oneshot configuration example](example_configs/general-oneshot-download-and-decrypt/) for configuration help.
+
+
 ## All Available Settings
 
 Below are all available settings with their default values:

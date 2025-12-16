@@ -19,9 +19,10 @@ docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:abc1234
 
 ### Using the Pre-Built Image
 
-Once pulled, you can run it directly:
+Once pulled, navigate to the `app/` directory and run it:
 
 ```bash
+cd app
 docker run --rm -v $(pwd)/data:/data registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 ```
 
@@ -31,7 +32,8 @@ Or tag it locally for convenience:
 docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 docker tag registry.gitlab.com/breakwaterlabs/silo-log-pull:latest silo-log-pull:latest
 
-# Now you can use it with the simpler name
+# Navigate to app directory and run with the simpler name
+cd app
 docker run --rm -v $(pwd)/data:/data silo-log-pull:latest
 ```
 

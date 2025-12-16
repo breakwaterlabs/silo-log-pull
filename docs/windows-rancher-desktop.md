@@ -33,48 +33,13 @@ You should see version information for both commands.
 
 ## Step 3: Set Up Your Project
 
-1. **Download this repository:**
-   - Download the ZIP file from the repository
-   - Extract it to a location like `C:\silo-log-pull`
-   - Open PowerShell and navigate to the directory:
+   1. Download the ZIP file from the repository
+   2. Extract it to a location like `C:\silo-log-pull`
+   3. Create your configuration files -- See the [command reference](configuration-reference.md#initial-configuration-steps) for details.
+   4. Open PowerShell and navigate to the app directory:
    ```powershell
-   cd C:\silo-log-pull
+   cd C:\silo-log-pull\app
    ```
-
-2. **Create the data directory structure:**
-   ```powershell
-   mkdir data
-   mkdir data\logs
-   ```
-
-3. **Create your configuration files:**
-
-   Copy an example config to use as a template:
-   ```powershell
-   copy docs\example_configs\general-oneshot-download-and-decrypt\silo_config.json data\
-   ```
-
-   Edit the configuration file:
-   ```powershell
-   notepad data\silo_config.json
-   ```
-
-   Set `"api_org_name"` to your Silo organization name, then save and close.
-
-4. **Create your API token file:**
-
-   ```powershell
-   notepad data\token.txt
-   ```
-
-   Paste your API token (32-character string), save, and close.
-
-5. **(Optional) If using encryption, add your seccure passphrase:**
-   ```powershell
-   notepad data\seccure_key.txt
-   ```
-
-   Type your passphrase, save, and close.
 
 ## Step 4: Build and Run
 
@@ -117,7 +82,7 @@ dir data\logs
 If you encounter path issues, try using the full path:
 
 ```powershell
-docker run --rm -v C:\silo-log-pull\data:/data silo-log-pull
+docker run --rm -v C:\silo-log-pull\app\data:/data silo-log-pull
 ```
 
 ### Permission Errors
@@ -177,8 +142,8 @@ Use Windows Task Scheduler to run the container on a schedule:
 1. Open Task Scheduler
 2. Create a new task with the action:
    - Program: `C:\Program Files\Rancher Desktop\resources\resources\win32\bin\docker.exe`
-   - Arguments: `run --rm -v C:\silo-log-pull\data:/data silo-log-pull`
-   - Start in: `C:\silo-log-pull`
+   - Arguments: `run --rm -v C:\silo-log-pull\app\data:/data silo-log-pull`
+   - Start in: `C:\silo-log-pull\app`
 
 ## Next Steps
 
