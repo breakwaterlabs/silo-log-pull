@@ -37,28 +37,28 @@ Below are all available settings with their default values:
 
 ## Setting Descriptions
 
-| Setting | Type | Description |
-|---------|------|-------------|
-| `data_dir` | string | Base directory for config files and logs. All relative paths are resolved from here. Default: `"data"` |
-| `settings_file` | string | Path to config file (relative to `data_dir` if not absolute). Default: `"silo_config.json"` |
-| `non_interactive` | boolean | Disable interactive prompts for automated execution. Default: `false` |
-| `log_in_directory` | string | Directory to import logs from when `api_download_logs` is false (relative to `data_dir` if not absolute). Default: `"logs"` |
-| `log_out_directory` | string | Directory where processed logs are saved (relative to `data_dir` if not absolute). Default: `"logs"` |
-| `api_download_logs` | boolean | If true, download logs from Silo API. If false, process existing logs from `log_in_directory`. Default: `true` |
-| `api_endpoint` | string | Silo API endpoint. Default: `"extapi.authentic8.com"` |
-| `api_org_name` | string | **Required.** Your organization name as shown in Silo Admin portal. |
-| `api_token_file` | string | File containing your API token (relative to `data_dir` if not absolute). Default: `"token.txt"` |
-| `log_type` | string | Log type to download. Options: `"ENC"` (encrypted), `"LOG"` (plaintext). Default: `"ENC"` |
-| `date_start` | string | Start date in `YYYY-MM-DD` format. Leave blank for today. Default: `""` |
-| `fetch_num_days` | integer | Number of days to fetch, counting back from `date_start`. Default: `7` |
-| `seccure_passphrase_file` | string | File containing seccure passphrase for decryption (relative to `data_dir` if not absolute). Default: `"seccure_key.txt"` |
-| `seccure_decrypt_logs` | boolean | Decrypt logs during processing. Requires seccure passphrase file. Default: `false` |
-| `seccure_show_pubkey` | boolean | Display the public key for your passphrase. Default: `false` |
-| `output_csv` | boolean | Save processed logs as CSV files. Default: `false` |
-| `output_json` | boolean | Save processed logs as JSON files. Default: `true` |
-| `output_console` | boolean | Display logs in console output. Default: `true` |
-| `web_interface` | boolean | Enable web interface (future feature). Default: `true` |
-| `web_interface_port` | integer | Port for web interface. Default: `8080` |
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `data_dir` | string | `"data"` | Base directory for config files and logs. All relative paths are resolved from here. |
+| `settings_file` | string | `"silo_config.json"` | Path to config file (relative to `data_dir` if not absolute). |
+| `non_interactive` | boolean | `false` | Disable interactive prompts for automated execution. |
+| `log_in_directory` | string | `"logs"` | Directory to import logs from when `api_download_logs` is false (relative to `data_dir` if not absolute). |
+| `log_out_directory` | string | `"logs"` | Directory where processed logs are saved (relative to `data_dir` if not absolute). |
+| `api_download_logs` | boolean | `true` | If true, download logs from Silo API. If false, process existing logs from `log_in_directory`. |
+| `api_endpoint` | string | `"extapi.authentic8.com"` | Silo API endpoint. |
+| `api_org_name` | string | `""` | **Required.** Your organization name as shown in Silo Admin portal. |
+| `api_token_file` | string | `"token.txt"` | File containing your API token (relative to `data_dir` if not absolute). |
+| `log_type` | string | `"ENC"` | Log type to download. Options: `"ENC"` (encrypted), `"LOG"` (plaintext). |
+| `date_start` | string | `""` | Start date in `YYYY-MM-DD` format. Leave blank for today. |
+| `fetch_num_days` | integer | `7` | Number of days to fetch, counting back from `date_start`. |
+| `seccure_passphrase_file` | string | `"seccure_key.txt"` | File containing seccure passphrase for decryption (relative to `data_dir` if not absolute). |
+| `seccure_decrypt_logs` | boolean | `false` | Decrypt logs during processing. Requires seccure passphrase file. |
+| `seccure_show_pubkey` | boolean | `false` | Display the public key for your passphrase. |
+| `output_csv` | boolean | `false` | Save processed logs as CSV files. |
+| `output_json` | boolean | `true` | Save processed logs as JSON files. |
+| `output_console` | boolean | `true` | Display logs in console output. |
+| `web_interface` | boolean | `true` | Enable web interface (future feature). |
+| `web_interface_port` | integer | `8080` | Port for web interface. |
 
 ## Environment Variable Overrides
 
