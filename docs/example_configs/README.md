@@ -40,11 +40,12 @@ silo-log-pull/
 
 To use an example configuration:
 
-1. Copy the example directory contents to your `data/` directory
-2. Edit `silo_config.json` to set your organization name
-3. Add your API token to `token.txt` (if downloading from API)
-4. Add your seccure passphrase to `seccure_key.txt` (if using decryption)
-5. Run the script
+1. Navigate to the `app/` directory: `cd app`
+2. Copy the example configuration files to your `data/` directory (which already exists)
+3. Edit `silo_config.json` to set your organization name
+4. Add your API token to `token.txt` (if downloading from API)
+5. Add your seccure passphrase to `seccure_key.txt` (if using decryption)
+6. Run the script
 
 ## Available Examples
 

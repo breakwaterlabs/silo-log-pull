@@ -31,9 +31,9 @@ You should see Python 3.6 or later.
 1. **Download this repository:**
    - Download the ZIP file from the repository
    - Extract it to a location like `C:\silo-log-pull`
-   - Open PowerShell and navigate to the directory:
+   - Open PowerShell and navigate to the app directory:
    ```powershell
-   cd C:\silo-log-pull
+   cd C:\silo-log-pull\app
    ```
 
 2. **Install Python dependencies:**
@@ -45,40 +45,8 @@ You should see Python 3.6 or later.
 
    If you're only downloading logs without decryption, no additional dependencies are needed.
 
-3. **Create the data directory structure:**
-   ```powershell
-   mkdir data
-   mkdir data\logs
-   ```
+3. **Create your configuration files** -- See the [command reference](configuration-reference.md#initial-configuration-steps) for details.
 
-4. **Create your configuration files:**
-
-   Copy an example config to use as a template:
-   ```powershell
-   copy docs\example_configs\general-oneshot-download-and-decrypt\silo_config.json data\
-   ```
-
-   Edit the configuration file:
-   ```powershell
-   notepad data\silo_config.json
-   ```
-
-   Set `"api_org_name"` to your Silo organization name, then save and close.
-
-5. **Create your API token file:**
-
-   ```powershell
-   notepad data\token.txt
-   ```
-
-   Paste your API token (32-character string), save, and close.
-
-6. **(Optional) If using encryption, add your seccure passphrase:**
-   ```powershell
-   notepad data\seccure_key.txt
-   ```
-
-   Type your passphrase, save, and close.
 
 ## Step 4: Run the Script
 
@@ -184,7 +152,7 @@ Use Windows Task Scheduler to run the script automatically:
 2. Create a new task with the action:
    - Program: `C:\Users\YourUser\AppData\Local\Programs\Python\Python3XX\python.exe`
    - Arguments: `silo_batch_pull.py`
-   - Start in: `C:\silo-log-pull`
+   - Start in: `C:\silo-log-pull\app`
 
 Or create a batch file for easier scheduling:
 
@@ -195,7 +163,7 @@ notepad run_silo.bat
 Add:
 ```batch
 @echo off
-cd /d C:\silo-log-pull
+cd /d C:\silo-log-pull\app
 python silo_batch_pull.py
 ```
 
