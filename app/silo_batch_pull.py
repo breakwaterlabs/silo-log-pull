@@ -122,8 +122,10 @@ def import_json_config(resolved_settings_filepath, defaults):
             usage_abort("Could not parse settings file '" + resolved_settings_filepath._str + "' as valid JSON. Either fix the file, rename it, or delete it and this script will create a new one.")
          jsonfile.close()
    else:
-      create_settings_file(resolved_settings_filepath._str, defaults)
-      print("Settings file was not found, so created new at " + resolved_settings_filepath._str)
+      print("Settings file was not found at " + resolved_settings_filepath._str + ". Using defaults and environment variables.")
+      if not IS_DOCKER:
+         create_settings_file(resolved_settings_filepath._str, defaults)
+         print("Not running in a container, so created settings file at " + resolved_settings_filepath._str)
       return defaults
    bad_settings = False
    for key in defaults.keys():
