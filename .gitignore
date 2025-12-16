@@ -5,16 +5,16 @@ seccure*
 *.txt
 *.csv
 *.json
-logs*
-
-# Specifically protect config directory secrets
-config
 logs
-data
+data/logs/*
+data/*
+
 
 # Manually whitelist files we want.
 !requirements.txt
+!data/logs/
+!docs/
 !*.md
-!example*
+!data/example*
 !*.bat
 !*.py

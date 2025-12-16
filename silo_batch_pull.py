@@ -181,8 +181,10 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
          input("Press enter to continue...")
       print("\n\n")
 
-in_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_in_directory"]))
-out_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_out_directory"]))
+#in_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_in_directory"]))
+#out_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_out_directory"]))
+in_dir = config["log_in_directory"]
+out_dir = config["log_out_directory"]
 
 for dir in [out_dir, in_dir]:
    os.makedirs(dir, exist_ok=True)
