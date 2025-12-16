@@ -5,28 +5,33 @@ services:
     build: .
     container_name: silo-log-pull
     volumes:
-      # Mount local config directory to /config in container
-      - ./config:/config
-      # Mount local logs directory to /logs in container
-      - ./logs:/logs
+      # Mount local data directory to /data in container
+      # This directory should contain:
+      #   - silo_config.json (main config file)
+      #   - token.txt (Silo API token)
+      #   - seccure_key.txt (seccure passphrase, if using encryption)
+      #   - logs/ subdirectory (for log files)
+      - ./data:/data
     environment:
       # Required: Your Silo organization name
       - SILO_API_ORG_NAME=${SILO_API_ORG_NAME}
 
-      # Optional: Override default paths (if not using /config and /logs)
-      # - SILO_SETTINGS_PATH=/config/base_config.json
-      # - SILO_API_TOKEN_FILE=/config/token.txt
-      # - SILO_SECCURE_PASSPHRASE_FILE=/config/seccure_key.txt
-      # - SILO_LOG_IN_DIR=/logs
-      # - SILO_LOG_OUT_DIR=/logs
+      # Optional: Override default paths (defaults shown, no need to set if using standard layout)
+      # - SILO_DATA_DIR=/data
+      # - SILO_SETTINGS_FILE=silo_config.json
+      # - SILO_API_TOKEN_FILE=token.txt
+      # - SILO_SECCURE_PASSPHRASE_FILE=seccure_key.txt
+      # - SILO_LOG_IN_DIRECTORY=logs
+      # - SILO_LOG_OUT_DIRECTORY=logs
 
       # Optional: Override configuration settings
+      # - SILO_NON_INTERACTIVE=true
       # - SILO_API_ENDPOINT=extapi.authentic8.com
-      # - SILO_API_DOWNLOAD=true
+      # - SILO_API_DOWNLOAD_LOGS=true
       # - SILO_LOG_TYPE=ENC
       # - SILO_DATE_START=2024-01-01
       # - SILO_FETCH_NUM_DAYS=7
-      # - SILO_SECCURE_DECRYPT=false
+      # - SILO_SECCURE_DECRYPT_LOGS=false
       # - SILO_SECCURE_SHOW_PUBKEY=false
       # - SILO_OUTPUT_CSV=false
       # - SILO_OUTPUT_JSON=true

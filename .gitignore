@@ -5,11 +5,16 @@ seccure*
 *.txt
 *.csv
 *.json
-logs*
+logs
+data/logs/*
+data/*
+
 
 # Manually whitelist files we want.
 !requirements.txt
+!data/logs/
+!docs/
 !*.md
-!example*
+!data/example*
 !*.bat
 !*.py

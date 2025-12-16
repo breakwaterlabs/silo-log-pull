@@ -13,45 +13,10 @@ import re
 # Detect if running in Docker container
 IS_DOCKER = os.environ.get('DOCKER_CONTAINER', '').lower() in ('true', '1', 'yes')
 
-# Docker path mapping: maps local relative paths to Docker absolute paths
-DOCKER_PATH_MAP = {
-    'logs': '/logs',
-    'base_config.json': '/config/base_config.json',
-    'token.txt': '/config/token.txt',
-    'seccure_key.txt': '/config/seccure_key.txt'
-}
-
-def get_env_path(env_var, default_local):
-    """
-    Get path from environment variable or return appropriate default based on runtime mode.
-
-    Args:
-        env_var: Environment variable name to check
-        default_local: Default path when running locally
-
-    Returns:
-        Path string - uses DOCKER_PATH_MAP for known paths in Docker mode,
-        otherwise prepends /config for relative paths
-    """
-    env_value = os.environ.get(env_var)
-    if env_value:
-        return env_value
-
-    if IS_DOCKER:
-        # Check if we have a specific Docker mapping for this path
-        if default_local in DOCKER_PATH_MAP:
-            return DOCKER_PATH_MAP[default_local]
-        # Otherwise, if it's a relative path, prepend /config
-        elif not default_local.startswith('/'):
-            return os.path.join('/config', default_local)
-
-    return default_local
-
 def get_env_value(env_var, default_value, value_type=str):
     env_value = os.environ.get(env_var)
     if env_value is None:
         return default_value
-
     if value_type == bool:
         return env_value.lower() in ('true', '1', 'yes')
     elif value_type == int:
@@ -63,28 +28,37 @@ def get_env_value(env_var, default_value, value_type=str):
         return env_value
 
 default_settings = {
-   "settings_path"    : get_env_path('SILO_SETTINGS_PATH', "base_config.json"),     #// Path to config file. Useful for concerns about leaking configuration. ENV: SILO_SETTINGS_PATH
-   "log_in_directory" : get_env_path('SILO_LOG_IN_DIR', "logs"),                    #// Directory where logs are imported from (if api_download_logs == false). ENV: SILO_LOG_IN_DIR
-   "log_out_directory" : get_env_path('SILO_LOG_OUT_DIR', "logs"),                  #// Directory where post-processed logs will go. ENV: SILO_LOG_OUT_DIR
-   "api_download_logs": get_env_value('SILO_API_DOWNLOAD', True, bool),             #// Process logs from...? True = Silo, false = logs directory. ENV: SILO_API_DOWNLOAD
-   "api_endpoint" : get_env_value('SILO_API_ENDPOINT', 'extapi.authentic8.com'),    #// Should usually be 'extapi.authentic8.com'. ENV: SILO_API_ENDPOINT
-   "api_org_name" : get_env_value('SILO_API_ORG_NAME', ""),                         #// Organization name shown in the Silo Admin portal. ENV: SILO_API_ORG_NAME
-   "api_token_file" : get_env_path('SILO_API_TOKEN_FILE', "token.txt"),             #// File containing 32-char API key (login credential) provided by Silo. ENV: SILO_API_TOKEN_FILE
-   "log_type" : get_env_value('SILO_LOG_TYPE', 'ENC'),                              #// Log type to download or import. See Silo docs for other options (like 'LOG'). ENV: SILO_LOG_TYPE
-   "date_start": get_env_value('SILO_DATE_START', ""),                              #// Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'. ENV: SILO_DATE_START
-   "fetch_num_days" : get_env_value('SILO_FETCH_NUM_DAYS', 7, int),                 #// How many days back from start date to download. ENV: SILO_FETCH_NUM_DAYS
-   "seccure_passphrase_file": get_env_path('SILO_SECCURE_PASSPHRASE_FILE', "seccure_key.txt"), #// File containing seccure passphrase. Only required for seccure options. ENV: SILO_SECCURE_PASSPHRASE_FILE
-   "seccure_decrypt_logs" : get_env_value('SILO_SECCURE_DECRYPT', False, bool),     #// Decrypt logs during processing? ENV: SILO_SECCURE_DECRYPT
-   "seccure_show_pubkey": get_env_value('SILO_SECCURE_SHOW_PUBKEY', False, bool),   #// Show the pubkey for the passphrase file? ENV: SILO_SECCURE_SHOW_PUBKEY
-   "output_csv" : get_env_value('SILO_OUTPUT_CSV', False, bool),                    #// Post-process: Save results to .CSV files? ENV: SILO_OUTPUT_CSV
-   "output_json" : get_env_value('SILO_OUTPUT_JSON', True, bool),                   #// Post-process: Save results to .JSON files? ENV: SILO_OUTPUT_JSON
-   "output_console": get_env_value('SILO_OUTPUT_CONSOLE', True, bool),              #// Post-process: Show logs on console window? ENV: SILO_OUTPUT_CONSOLE
-   "web_interface": get_env_value('SILO_WEB_INTERFACE', True, bool),                #// Activate web interface. ENV: SILO_WEB_INTERFACE
-   "web_interface_port": get_env_value('SILO_WEB_INTERFACE_PORT', 8080, int)        #// Listen port for web interface. ENV: SILO_WEB_INTERFACE_PORT
+   "data_dir"       : "data",           # Base directory containing config files and logs. Used to resolve relative paths.
+   "settings_file"    : "silo_config.json", # Path to config file (relative to data_dir if not absolute).
+   "non_interactive"  : False,            # Don't use interactive prompts
+   "log_in_directory" : "logs",             # Directory where logs are imported from (relative to data_dir if not absolute).
+   "log_out_directory" : "logs",            # Directory where post-processed logs will go (relative to data_dir if not absolute).
+   "api_download_logs": True,               # Process logs from...? True = Silo, false = logs directory.
+   "api_endpoint" : "extapi.authentic8.com", # Should usually be 'extapi.authentic8.com'.
+   "api_org_name" : "",                     # Organization name shown in the Silo Admin portal.
+   "api_token_file" : "token.txt",          # File containing 32-char API key (relative to data_dir if not absolute).
+   "log_type" : "ENC",                      # Log type to download or import. See Silo docs for other options (like 'LOG').
+   "date_start": "",                        # Blank = today, otherwise provide a valid date %Y-%m-%d e.g. '2020-01-30'.
+   "fetch_num_days" : 7,                    # How many days back from start date to download.
+   "seccure_passphrase_file": "seccure_key.txt", # File containing seccure passphrase (relative to data_dir if not absolute).
+   "seccure_decrypt_logs" : False,          # Decrypt logs during processing?
+   "seccure_show_pubkey": False,            # Show the pubkey for the passphrase file?
+   "output_csv" : False,                    # Post-process: Save results to .CSV files?
+   "output_json" : True,                    # Post-process: Save results to .JSON files?
+   "output_console": True,                  # Post-process: Show logs on console window?
+   "web_interface": True,                   # Activate web interface.
+   "web_interface_port": 8080               # Listen port for web interface.
 }
+# Apply environment variable overrides (ENV: SILO_<KEY_NAME>)
+
+for key in default_settings.keys():
+   env_var_name = 'SILO_' + key.upper()
+   value_type = type(default_settings[key])
+   default_settings[key] = get_env_value(env_var_name, default_settings[key], value_type)
+config=default_settings
 
 if IS_DOCKER:
-    print("Running in Docker mode - config files from /config, logs from /logs")
+    print("Running in Docker mode - data files (config and logs) from /data")
     print("Environment variables will override default settings")
     print("######     Config file will override both.    ######")
 
@@ -93,17 +67,18 @@ def usage_abort( extra='', settings=True ):
    print("########################### FATAL ERROR ############################")
    print("####################################################################")
    if settings:
-      print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + default_settings['settings_path'])
+      print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + default_settings['settings_file'])
       print('   "api_org_name" : "<org>"')
       print("\nIf seccure_decrypt_logs or seccure_show_pubkey is True, then the following setting must be set to a file containing the seccure passphrase: ")
       print('   "seccure_passphrase_file" : "<seccure_key.txt>" ')
-      print('\nOtherwise you can specify an alternate settings path by setting "settings_path" in' + default_settings['settings_path'])
+      print('\nOtherwise you can specify an alternate settings path by setting "settings_file" in' + default_settings['settings_file'])
    else:
       print("\nSomething went wrong unrelated to reading your settings.")
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
    print("\nPlease see below for any specific error details:\n\n")
    print(extra)
-   input("\nPress enter to exit...")
+   if not config["non_interactive"]:
+      input("\nPress enter to exit...")
    sys.exit()
 
 def create_settings_file(path, settings):
@@ -123,28 +98,33 @@ def path_accessible(path, as_dir=False):
    else:
       return os.path.isfile(path) and os.access(path, os.R_OK)
 
-def import_json_config(config_path, defaults):
-   fixedpath = Path(config_path)
-   if path_accessible(fixedpath):
+def resolve_paths(data_dir, filename):
+   if not os.path.isabs(filename):
+      filename = os.path.join(data_dir, filename)
+   return Path(filename)
+
+def import_json_config(resolved_settings_filepath, defaults):
+   if path_accessible(resolved_settings_filepath):
       print("Settings file found. Importing settings.")
-      with open(Path(fixedpath), "r") as jsonfile:
+      with open(resolved_settings_filepath, "r") as jsonfile:
          try:
             file_config = json.load(jsonfile)
-            if not (file_config.get('settings_path') is None):
-               altpath = Path(file_config['settings_path'])
-               if altpath != fixedpath:
-                  print("Found alternate settings path, using that instead: " + altpath._str)
-                  fixedpath = altpath
-                  with open(altpath, "r") as altfile:
-                     file_config = json.load(altfile)
-            print("\nSuccessfully read config file at " + fixedpath._str)
+            # Check if data_dir and settings_file in file result in a different config location
+            if not (file_config.get('data_dir') is None) and not (file_config.get('settings_file') is None):
+               alternate_settings_filepath = resolve_paths(file_config['data_dir'], file_config['settings_file'])
+               if alternate_settings_filepath != resolved_settings_filepath:
+                  print(f"Found alternate settings path, using that instead: {alternate_settings_filepath}")
+                  resolved_settings_filepath = alternate_settings_filepath
+                  with open(alternate_settings_filepath, "r") as altfile:
+                     file_config = json.load( file_config['settings_file'] )
+            print("\nSuccessfully read config file at " + resolved_settings_filepath._str)
          except:
-            usage_abort("Could not parse settings file '" + fixedpath._str + "' as valid JSON. Either fix the file, rename it, or delete it and this script will create a new one.")
+            usage_abort("Could not parse settings file '" + resolved_settings_filepath._str + "' as valid JSON. Either fix the file, rename it, or delete it and this script will create a new one.")
          jsonfile.close()
    else:
-      create_settings_file(fixedpath._str, defaults)
-      usage_abort("Settings file was not found, so created new at " + fixedpath._str + ". Please set api_org_name in this file before re-running.")
-   # Check if an alternate file config path is given, and re-parse if so.
+      create_settings_file(resolved_settings_filepath._str, defaults)
+      print("Settings file was not found, so created new at " + resolved_settings_filepath._str)
+      return defaults
    bad_settings = False
    for key in defaults.keys():
       usedefault=False
@@ -161,17 +141,23 @@ def import_json_config(config_path, defaults):
       else:
          message = "(from config)"
       print( "Conf: {k:25s} = {s:25s} {m}".format(k = key, s = str(file_config[key]), m = message) )
-   if bad_settings:
+   if bad_settings and not config["non_interactive"]:
       print("\n\n!! Some bad settings detected, so defaults were used. Please check that these are correct.")
       input("\nPress enter to continue, and create a fixed config file. A backup of your config file will be made.")
-      create_settings_file(fixedpath, file_config)
+      print("Creating fixed config file. A backup of your config file will be made.")
+      create_settings_file(resolved_settings_filepath, file_config)
    if file_config.get("api_org_name") is None:
       usage_abort( 'api_org_name must be defined.' )
    elif file_config["api_org_name"] == "":
       usage_abort( 'api_org_name must not be blank.' ) 
    return file_config
 
-config = import_json_config(default_settings['settings_path'], default_settings)
+default_settings_file = resolve_paths(default_settings['data_dir'], default_settings['settings_file'])
+config = import_json_config( default_settings_file, default_settings)
+config["api_token_file"] = resolve_paths(config["data_dir"], config["api_token_file"])
+config["seccure_passphrase_file"] = resolve_paths(config["data_dir"], config["seccure_passphrase_file"])
+config["log_in_directory"] = resolve_paths(config["data_dir"], config["log_in_directory"])
+config["log_out_directory"] = resolve_paths(config["data_dir"], config["log_out_directory"])
 
 if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    import seccure
@@ -186,15 +172,19 @@ if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
       usage_abort("Your passphrase file is empty. Please make sure you have specified a passphrase.")
    if len(passphrase) < 10:
       print("\nWarning: Your passphrase is very short. Please make a new passphrase that meets NIST recommendations to avoid this message.")
-      input("Press enter to acknowledge.")
-   if config["seccure_show_pubkey"]:   
+      if not config["non_interactive"]:
+         input("Press enter to acknowledge.")
+   if config["seccure_show_pubkey"]:
       pubkey = str(seccure.passphrase_to_pubkey(passphrase, curve=seccure_curve))
       print("\n\nConfig set to display pubkey.\n\n-----  Start Seccure Pubkey  -----\n" + pubkey + "\n------  End Seccure Pubkey  ------\n")
-      input("Press enter to continue...")
+      if not config["non_interactive"]:
+         input("Press enter to continue...")
       print("\n\n")
 
-in_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_in_directory"]))
-out_dir = Path(re.sub(r'[^\w_. -]', '_', config["log_out_directory"]))
+#in_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_in_directory"]))
+#out_dir = Path(re.sub(r'[^\w_. /\\-]', '_', config["log_out_directory"]))
+in_dir = config["log_in_directory"]
+out_dir = config["log_out_directory"]
 
 for dir in [out_dir, in_dir]:
    os.makedirs(dir, exist_ok=True)

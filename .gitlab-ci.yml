@@ -1,0 +1,78 @@
+# GitLab CI/CD Configuration for silo-log-pull
+#
+# This pipeline automatically:
+# 1. Builds the Docker image on every commit
+# 2. Tests basic functionality
+# 3. Publishes to GitLab Container Registry on main branch and tags
+#
+# Images will be available at:
+#   registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+#   registry.gitlab.com/breakwaterlabs/silo-log-pull:v1.0.0 (for version tags)
+#   registry.gitlab.com/breakwaterlabs/silo-log-pull:abc1234 (commit SHA)
+#
+# No configuration needed - this works out of the box with GitLab's built-in registry
+
+stages:
+  - build
+  - publish
+
+variables:
+  # Use GitLab's built-in container registry
+  IMAGE_NAME: $CI_REGISTRY_IMAGE
+  # Use Docker-in-Docker
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# Build and test the image on all branches
+build:
+  stage: build
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    - docker info
+  script:
+    # Build the image
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+    # Basic smoke test - verify image can run
+    - docker run --rm $IMAGE_NAME:$CI_COMMIT_SHORT_SHA python --version
+  rules:
+    # Run on all branches and tags
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
+
+# Publish to registry on main branch and tags
+publish:
+  stage: publish
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build the image
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHORT_SHA .
+
+    # Tag and push for main branch
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
+        docker tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:latest
+        docker push $IMAGE_NAME:latest
+        docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+        echo "Published as latest and $CI_COMMIT_SHORT_SHA"
+      fi
+
+    # Tag and push for version tags
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        docker tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:$CI_COMMIT_TAG
+        docker tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:latest
+        docker push $IMAGE_NAME:$CI_COMMIT_TAG
+        docker push $IMAGE_NAME:latest
+        docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+        echo "Published as $CI_COMMIT_TAG, latest, and $CI_COMMIT_SHORT_SHA"
+      fi
+  rules:
+    # Only publish on main branch or tags
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
