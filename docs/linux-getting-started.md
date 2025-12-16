@@ -58,10 +58,9 @@ docker-compose --version
    cd silo-log-pull-main
    ```
 
-2. **Create data directory and files:**
+2. **Set up configuration files:**
    ```bash
-   mkdir -p data/logs
-   cp docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
+   cp ../docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
    ```
 
 3. **Edit configuration:**
@@ -72,27 +71,35 @@ docker-compose --version
 
    Set `"api_org_name"` to your organization name, save and exit.
 
-4. **Add your API token:**
+4. **(Optional) Add HTTP tokens for log download:**
+   Log download from internet requires an API key from Authentic8 in token.txt:
    ```bash
    nano data/token.txt
    ```
-
-   Paste your token, save and exit.
+   Paste your token (example), save and exit.
 
 5. **(Optional) Add seccure passphrase if using encryption:**
+   Decrypting encrypted logs requires a `seccure` decryption passphrase:
    ```bash
    nano data/seccure_key.txt
    ```
+   Paste in your plaintext passphrase. (Example)
 
-6. **Build and run:**
+6. **Pull / Build and run the docker image:**
    ```bash
+   # EITHER:  Build locally...
    docker build -t silo-log-pull .
+
+   #   OR:    Pull from Gitlab
+   docker pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+
+   # ... And then run it
    docker run --rm -v $(pwd)/data:/data silo-log-pull
    ```
 
 7. **View your logs:**
    ```bash
-   ls -lh data/logs/
+   ls -lh app/data/logs/
    ```
 
 ---
@@ -101,90 +108,22 @@ docker-compose --version
 
 Podman is a daemonless container engine that's compatible with Docker commands. It's particularly useful in enterprise environments and supports rootless containers.
 
-## Install Podman
+It should be installed by default, and its usage here is identical to docker usage, except that instead of `docker <command>` you would use `podman <command>`:
+   ```bash
+   podman pull registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
+   podman run --rm -v $(pwd)/data:/data silo-log-pull
+   ```
 
-### Ubuntu/Debian
+## Installing podman
+Podman should be installed out of the box on Red Hat. You can verify as follows:
+   ```bash
+   podman --version
+   ```
 
-```bash
-sudo apt update
-sudo apt install podman
-```
-
-### RHEL/CentOS/Fedora
-
+If it is not installed, you can install it on Red Hat-based systems as follows:
 ```bash
 sudo dnf install podman
 ```
-
-## Verify Installation
-
-```bash
-podman --version
-```
-
-## Set Up and Run
-
-1. **Download and extract the repository:**
-   ```bash
-   wget https://github.com/yourusername/silo-log-pull/archive/refs/heads/main.zip
-   unzip main.zip
-   cd silo-log-pull-main
-   ```
-
-2. **Create data directory and files:**
-   ```bash
-   mkdir -p data/logs
-   cp docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
-   ```
-
-3. **Edit configuration:**
-   ```bash
-   nano data/silo_config.json
-   ```
-
-   Set `"api_org_name"` to your organization name, save and exit.
-
-4. **Add your API token:**
-   ```bash
-   nano data/token.txt
-   ```
-
-   Paste your token, save and exit.
-
-5. **(Optional) Add seccure passphrase if using encryption:**
-   ```bash
-   nano data/seccure_key.txt
-   ```
-
-6. **Build and run with Podman:**
-   ```bash
-   podman build -t silo-log-pull .
-   podman run --rm -v $(pwd)/data:/data:Z silo-log-pull
-   ```
-
-   Note: The `:Z` flag handles SELinux labeling on RHEL-based systems.
-
-7. **View your logs:**
-   ```bash
-   ls -lh data/logs/
-   ```
-
-### Using Podman with Docker Compose
-
-Podman can use docker-compose files with podman-compose:
-
-```bash
-sudo dnf install podman-compose  # or apt on Ubuntu
-podman-compose up
-```
-
-Or use podman's docker-compose compatibility:
-
-```bash
-docker-compose up  # Will use podman if docker is not installed
-```
-
----
 
 # Option 3: Using Python Directly
 
@@ -209,7 +148,7 @@ sudo dnf install python3 python3-pip python3-devel gcc gmp-devel
    ```bash
    wget https://github.com/yourusername/silo-log-pull/archive/refs/heads/main.zip
    unzip main.zip
-   cd silo-log-pull-main
+   cd silo-log-pull-main/app
    ```
 
 2. **Install Python dependencies (if using encryption):**
@@ -222,10 +161,9 @@ sudo dnf install python3 python3-pip python3-devel gcc gmp-devel
    pip3 install --user -r requirements.txt
    ```
 
-3. **Create data directory and files:**
+3. **Set up configuration files:**
    ```bash
-   mkdir -p data/logs
-   cp docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
+   cp ../docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
    ```
 
 4. **Edit configuration:**
@@ -315,12 +253,12 @@ crontab -e
 
 Add this line (adjust path as needed):
 ```
-0 2 * * * cd /path/to/silo-log-pull && docker run --rm -v $(pwd)/data:/data silo-log-pull
+0 2 * * * cd /path/to/silo-log-pull/app && docker run --rm -v $(pwd)/data:/data silo-log-pull
 ```
 
 Or for Python:
 ```
-0 2 * * * cd /path/to/silo-log-pull && python3 silo_batch_pull.py
+0 2 * * * cd /path/to/silo-log-pull/app && python3 silo_batch_pull.py
 ```
 
 ### Using systemd for Scheduled Runs
@@ -339,8 +277,8 @@ After=network.target
 [Service]
 Type=oneshot
 User=youruser
-WorkingDirectory=/path/to/silo-log-pull
-ExecStart=/usr/bin/docker run --rm -v /path/to/silo-log-pull/data:/data silo-log-pull
+WorkingDirectory=/path/to/silo-log-pull/app
+ExecStart=/usr/bin/docker run --rm -v /path/to/silo-log-pull/app/data:/data silo-log-pull
 
 [Install]
 WantedBy=multi-user.target

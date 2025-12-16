@@ -45,15 +45,15 @@ A Python script for downloading and processing Silo logs from Authentic8. Provid
 All methods follow this pattern:
 
 1. Download and extract this repository
-2. Create a `data/` directory
-3. Add your configuration files to `data/`:
+2. Navigate to the `app/` directory: `cd app`
+3. Add your configuration files to the `data/` directory (which already exists):
    - `silo_config.json` (copy from `docs/example_configs/`)
    - `token.txt` (your API token)
-   - `seccure_key.txt` (optional, for encryption)
+   - `seccure_key.txt` (optional, for decryption)
 4. Edit `silo_config.json` to set your organization name
 5. Run the script
 
-The script uses a unified `data/` directory for all configuration and logs.
+All configs and output will end up in `app/data/`.
 
 ### 3. Example Configurations
 
@@ -97,6 +97,8 @@ For offline/air-gapped systems, see the [Offline Systems Guide](docs/offline-sys
 
 
 ## Quick Usage Examples
+
+After navigating to the `app/` directory (`cd app`):
 
 **Python:**
 ```bash
