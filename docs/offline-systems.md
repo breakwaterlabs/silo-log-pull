@@ -7,6 +7,7 @@ This guide explains how to deploy silo-log-pull on systems without internet acce
 Docker images can be easily exported on a system with internet access and imported on the offline system.
 
 ### On a System with Internet Access
+First ensure you have a working container runtime like docker or rancher-desktop. See the [Windows Rancher Desktop guide](windows-rancher-desktop.md) for details on Windows.
 
 #### 1. Build or Pull the Image
 
@@ -59,21 +60,14 @@ docker images | grep silo-log-pull
 
 #### 2. Set Up Your Data Directory
 
+See the [2-step High side](example_configs/2-step_highside/) example configuration-- the configurations should work out of the box (depending on desired output format) and only require modifying the seccure_key.txt.
+
+Review your settings:
 ```bash
-mkdir -p data/logs
+nano data/silo_config.json
 ```
 
-Copy an example config:
-```bash
-cp docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
-```
-
-Create your token file (if downloading from API):
-```bash
-echo "YOUR_TOKEN_HERE" > data/token.txt
-```
-
-Create your passphrase file (if using encryption):
+Set your decryption key:
 ```bash
 echo "YOUR_PASSPHRASE_HERE" > data/seccure_key.txt
 ```
@@ -84,22 +78,19 @@ echo "YOUR_PASSPHRASE_HERE" > data/seccure_key.txt
 docker run --rm -v $(pwd)/data:/data silo-log-pull
 ```
 
-### Using Podman Instead of Docker
+### Using Podman Instead of Docker (Linux only)
 
-Podman works the same way:
+Podman works the same way, but with `podman` instead of `docker` in commands:
 
 **Export:**
 ```bash
+# Export
 podman save silo-log-pull -o silo-log-pull.tar
-```
 
-**Import:**
-```bash
+# import
 podman load -i silo-log-pull.tar
-```
 
-**Run:**
-```bash
+# run
 podman run --rm -v $(pwd)/data:/data silo-log-pull
 ```
 
@@ -107,7 +98,7 @@ podman run --rm -v $(pwd)/data:/data silo-log-pull
 
 ## Option 2: Python Dependencies Transfer
 
-If you prefer to run Python directly without containers, you'll need to transfer the Python dependencies.
+If you prefer to run Python directly without containers, you'll need to transfer the Python dependencies. From the root of the downloaded silo-log-pull:
 
 ### On a System with Internet Access
 
@@ -133,24 +124,16 @@ This downloads wheel files for:
 
 #### 2. Create a Complete Package
 
-Create a transfer package with the script and dependencies:
+The `app` directory should now contain a "silo-dependencies" directory with files in it. 
+Create an archive (.zip or .tar.gz) of the entire `app` directory. In Linux:
+
 ```bash
 cd ..
-mkdir silo-log-pull-offline
-cp silo_batch_pull.py silo-log-pull-offline/
-cp requirements.txt silo-log-pull-offline/
-cp -r silo-dependencies silo-log-pull-offline/
-cp -r docs silo-log-pull-offline/
-```
+# Linux tarball
+tar -czf silo-log-pull-offline.tar.gz app/
 
-Create a tarball:
-```bash
-tar -czf silo-log-pull-offline.tar.gz silo-log-pull-offline/
-```
-
-Or create a ZIP file (Windows-friendly):
-```bash
-zip -r silo-log-pull-offline.zip silo-log-pull-offline/
+# Or create a ZIP file (Windows-friendly):
+zip -r silo-log-pull-offline.zip app/
 ```
 
 #### 3. Transfer the Package
@@ -163,13 +146,13 @@ Transfer `silo-log-pull-offline.tar.gz` or `.zip` to the offline system.
 
 ```bash
 tar -xzf silo-log-pull-offline.tar.gz
-cd silo-log-pull-offline
+cd silo-log-pull-offline/app
 ```
 
 Or on Windows:
 ```powershell
 Expand-Archive silo-log-pull-offline.zip
-cd silo-log-pull-offline
+cd silo-log-pull-offline\app
 ```
 
 #### 2. Install Dependencies
@@ -186,12 +169,7 @@ python -m pip install --no-index --find-links silo-dependencies -r requirements.
 
 #### 3. Set Up Configuration
 
-```bash
-mkdir -p data/logs
-cp docs/example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
-```
-
-Create your token and passphrase files as needed.
+See [Set up your data directory](#2-set-up-your-data-directory) above for details
 
 #### 4. Run the Script
 
@@ -261,127 +239,3 @@ Then install:
 ```bash
 pip3 install --no-index --find-links . -r ../requirements.txt
 ```
-
----
-
-## Tips for Offline Deployments
-
-### Use Docker When Possible
-
-Docker is almost always easier for offline deployments:
-- **Single file to transfer** - One TAR file vs multiple wheel files
-- **No system dependencies** - Everything is self-contained
-- **Consistent across systems** - Same image works everywhere
-- **Easier updates** - Just replace the TAR file
-
-### Verify Before Transfer
-
-Always verify file integrity before transferring to offline systems:
-
-```bash
-# Create checksum
-sha256sum silo-log-pull.tar > silo-log-pull.tar.sha256
-
-# Verify after transfer
-sha256sum -c silo-log-pull.tar.sha256
-```
-
-### Consider Image Compression
-
-If transfer size is a concern, compress the TAR file:
-
-```bash
-gzip silo-log-pull.tar
-# Creates silo-log-pull.tar.gz (typically 30-50% smaller)
-```
-
-Decompress on the offline system:
-```bash
-gunzip silo-log-pull.tar.gz
-docker load -i silo-log-pull.tar
-```
-
-### Plan for Updates
-
-When updates are needed:
-- **Docker**: Build new image, export, transfer, load
-- **Python**: Download updated dependencies, transfer, reinstall
-
-Maintain version numbers in filenames:
-```bash
-silo-log-pull-v1.2.tar
-silo-dependencies-v1.2.tar.gz
-```
-
-### Test on a Similar System First
-
-Before deploying to the air-gapped system:
-1. Test the export/import process on a non-critical system
-2. Verify all functionality works after import
-3. Document any platform-specific issues
-
----
-
-## Example: Complete Offline Deployment Workflow
-
-### Phase 1: Preparation (Internet-Connected System)
-
-```bash
-# Build Docker image
-docker build -t silo-log-pull .
-
-# Export image
-docker save silo-log-pull -o silo-log-pull.tar
-
-# Create checksum
-sha256sum silo-log-pull.tar > silo-log-pull.tar.sha256
-
-# Package everything for transfer
-mkdir transfer-package
-cp silo-log-pull.tar transfer-package/
-cp silo-log-pull.tar.sha256 transfer-package/
-cp -r docs/example_configs transfer-package/
-cp README.md transfer-package/
-tar -czf silo-transfer.tar.gz transfer-package/
-```
-
-### Phase 2: Transfer
-
-Transfer `silo-transfer.tar.gz` using approved methods.
-
-### Phase 3: Deployment (Offline System)
-
-```bash
-# Extract package
-tar -xzf silo-transfer.tar.gz
-cd transfer-package
-
-# Verify integrity
-sha256sum -c silo-log-pull.tar.sha256
-
-# Load image
-docker load -i silo-log-pull.tar
-
-# Set up configuration
-mkdir -p data/logs
-cp example_configs/general-oneshot-download-and-decrypt/silo_config.json data/
-echo "YOUR_TOKEN" > data/token.txt
-echo "YOUR_PASSPHRASE" > data/seccure_key.txt
-
-# Edit config
-nano data/silo_config.json
-# Set api_org_name
-
-# Test run
-docker run --rm -v $(pwd)/data:/data silo-log-pull
-```
-
----
-
-## Next Steps
-
-After successful offline deployment:
-- Set up scheduled execution (cron, Task Scheduler, systemd)
-- Configure log rotation for the `data/logs/` directory
-- Establish a process for regular updates
-- Document your specific deployment process
