@@ -5,13 +5,13 @@ services:
     build: .
     container_name: silo-log-pull
     volumes:
-      # Mount local data directory to /data in container
+      # Mount local app/data directory to /data in container
       # This directory should contain:
       #   - silo_config.json (main config file)
       #   - token.txt (Silo API token)
       #   - seccure_key.txt (seccure passphrase, if using encryption)
       #   - logs/ subdirectory (for log files)
-      - ./data:/data
+      - ./app/data:/data
     environment:
       # Required: Your Silo organization name
       - SILO_API_ORG_NAME=${SILO_API_ORG_NAME}

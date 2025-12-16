@@ -1,20 +1,31 @@
-# General categorical ignores
-token*
-silo_config.*
-seccure*
-*.txt
+# Ignore sensitive files anywhere in repo
+# Both of these logs entries are necessary in conjunction with the whitelist...
+# ....to ensure that /app/data/logs is kept but all other log files are ignored
+**/logs/*
+**/logs*
+**/token.txt
+**/seccure_key.txt
+**/silo_config.json
+
+# Ignore data files
 *.csv
 *.json
-logs
-data/logs/*
-data/*
+*.txt
 
+# Whitelist the default logs directory itself, but not subfiles
+!app/data/logs
 
-# Manually whitelist files we want.
-!requirements.txt
-!data/logs/
-!docs/
-!*.md
-!data/example*
-!*.bat
+# Whitelist example configs directory (all files in there are examples)
+!docs/example_configs/**
+
+# Whitelist specific example files
+!**/example_*
+
+# Whitelist code and documentation
 !*.py
+!*.md
+!*.bat
+!requirements.txt
+!.gitlab-ci.yml
+!docker-compose.yml
+!Dockerfile

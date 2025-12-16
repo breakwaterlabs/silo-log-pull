@@ -24,14 +24,16 @@ The script uses a `data_dir` setting (default: `"data"`) as the base directory f
 
 ```
 silo-log-pull/
-├── silo_batch_pull.py
-└── data/                      # data_dir (default)
-    ├── silo_config.json       # settings_file
-    ├── token.txt              # api_token_file
-    ├── seccure_key.txt        # seccure_passphrase_file
-    └── logs/                  # log_in_directory and log_out_directory
-        ├── silo_encrypted_2024-01-01.json
-        └── silo_decrypted_2024-01-01.json
+└── app/
+    ├── silo_batch_pull.py
+    ├── requirements.txt
+    └── data/                  # data_dir (default)
+        ├── silo_config.json       # settings_file
+        ├── token.txt              # api_token_file
+        ├── seccure_key.txt        # seccure_passphrase_file
+        └── logs/                  # log_in_directory and log_out_directory
+            ├── silo_encrypted_2024-01-01.json
+            └── silo_decrypted_2024-01-01.json
 ```
 
 ## Using Example Configs
