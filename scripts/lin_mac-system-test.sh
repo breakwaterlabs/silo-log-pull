@@ -356,9 +356,9 @@ print_summary() {
     #    esac
     #done
 
-    write_section_header "Available Installation Modes"
+    write_section_header "Available Modes"
     if [[ ${#AVAILABLE_MODES[@]} -eq 0 ]]; then
-        echo -e "  ${YELLOW}No installation modes detected${RESET}"
+        echo -e "  ${YELLOW}No usable modes detected${RESET}"
         echo -e "  You may need to install Python 3 or a container runtime (Docker/Podman)"
     else
         for mode in "${AVAILABLE_MODES[@]}"; do

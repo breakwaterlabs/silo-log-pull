@@ -420,11 +420,11 @@ if ($Mode -eq 'Container' -or $Mode -eq 'All') {
 # Summary Section
 Write-SectionHeader -Title "Summary" -Major
 
-Write-SectionHeader -Title "Available Installation Modes"
+Write-SectionHeader -Title "Available  Modes"
 if ($script:AvailableModes.Count -eq 0) {
     $Yellow = "`e[33m"
     $Reset = "`e[0m"
-    Write-Host "  ${Yellow}No installation modes detected${Reset}"
+    Write-Host "  ${Yellow}No usable modes detected${Reset}"
     Write-Host "  You may need to install Python 3 or a container runtime (Docker/Rancher Desktop)"
 } else {
     $Green = "`e[32m"
