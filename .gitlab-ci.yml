@@ -32,6 +32,7 @@ variables:
 pages:
   stage: docs
   image: pandoc/latex:latest
+  entrypoint: ["/bin/sh", "-c"]
   script:
     # Create output directories
     - mkdir -p public/html public/pdf
