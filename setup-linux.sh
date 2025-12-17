@@ -38,9 +38,10 @@ show_menu() {
     echo "6. Prepare offline container package"
     echo "7. Schedule execution (cron)"
     echo "8. Install as systemd service"
-    echo "9. Exit"
+    echo "9. Run script (Python or Container)"
+    echo "10. Exit"
     echo ""
-    echo -n "Select an option [1-9]: "
+    echo -n "Select an option [1-10]: "
 }
 
 pause() {
@@ -105,11 +106,14 @@ main() {
                 pause
                 ;;
             9)
+                bash "${SCRIPTS_DIR}/run-script.sh"
+                ;;
+            10)
                 echo -e "${GREEN}Exiting...${RESET}"
                 exit 0
                 ;;
             *)
-                echo -e "${RED}Invalid option. Please select 1-9.${RESET}"
+                echo -e "${RED}Invalid option. Please select 1-10.${RESET}"
                 pause
                 ;;
         esac

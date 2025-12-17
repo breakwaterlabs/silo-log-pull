@@ -11,6 +11,7 @@ TEMP_DIR="${REPOBASE}/.offline-temp-container"
 OUTPUT_TAR="${TEMP_DIR}/silo-log-pull.tar"
 OUTPUT_ZIP="${REPOBASE}/silo-log-pull-container-offline.zip"
 IMAGE_NAME="silo-log-pull"
+INCLUDE_LOGS=false
 
 # ANSI color codes
 GREEN='\033[0;32m'
@@ -18,6 +19,21 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --include-logs)
+            INCLUDE_LOGS=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--include-logs]"
+            exit 1
+            ;;
+    esac
+done
 
 # Determine which container runtime to use
 CONTAINER_CMD=""
@@ -50,6 +66,28 @@ if ! command -v zip >/dev/null 2>&1; then
     exit 1
 fi
 
+# Prompt for log inclusion if not specified via command line
+if [ "$INCLUDE_LOGS" = false ]; then
+    SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+    LOG_DETAILS=$("${SCRIPT_DIR}/get-log-details.sh")
+
+    echo ""
+    echo -e "${YELLOW}Do you want to include existing logs in the offline bundle?${RESET}"
+    echo "$LOG_DETAILS"
+    echo -n "Include logs? [y/N]: "
+    read -r response
+    if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+        INCLUDE_LOGS=true
+    fi
+fi
+
+if [ "$INCLUDE_LOGS" = true ]; then
+    echo -e "${GREEN}Logs will be included in the offline bundle${RESET}"
+else
+    echo -e "${RESET}Logs will be excluded from the offline bundle${RESET}"
+fi
+echo ""
+
 echo -e "${GREEN}Creating temporary directory structure...${RESET}"
 mkdir -p "${TEMP_DIR}/app/data"
 
@@ -58,6 +96,19 @@ if [ -d "${REPOBASE}/app/data" ]; then
     # Only copy example/template files, not actual config or logs
     if [ -f "${REPOBASE}/app/data/example_silo_config.json" ]; then
         cp "${REPOBASE}/app/data/example_silo_config.json" "${TEMP_DIR}/app/data/"
+    fi
+fi
+
+# Conditionally copy logs if requested
+if [ "$INCLUDE_LOGS" = true ]; then
+    if [ -d "${REPOBASE}/app/data/logs" ]; then
+        echo -e "${RESET}Adding logs directory...${RESET}"
+        cp -r "${REPOBASE}/app/data/logs" "${TEMP_DIR}/app/data/"
+    fi
+
+    if [ -d "${REPOBASE}/app/data/logs_out" ]; then
+        echo -e "${RESET}Adding logs_out directory...${RESET}"
+        cp -r "${REPOBASE}/app/data/logs_out" "${TEMP_DIR}/app/data/"
     fi
 fi
 

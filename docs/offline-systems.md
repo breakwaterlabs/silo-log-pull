@@ -2,6 +2,39 @@
 
 This guide covers deploying silo-log-pull on systems without internet access.
 
+## Automated Offline Packaging (Recommended)
+
+The repository includes scripts to automate offline package creation with optional log bundling:
+
+**Windows PowerShell:**
+```powershell
+# Python dependencies package
+.\scripts\win\prepare-offline-python.ps1 [-IncludeLogs]
+
+# Container image package
+.\scripts\win\prepare-offline-container.ps1 [-IncludeLogs]
+```
+
+**Linux/macOS:**
+```bash
+# Python dependencies package
+./scripts/linux/prepare-offline-python.sh [--include-logs]
+
+# Container image package
+./scripts/linux/prepare-offline-container.sh [--include-logs]
+```
+
+**Log Bundling Options:**
+- Without the flag: Script will prompt interactively whether to include logs
+- With the flag: Automatically includes both `logs/` and `logs_out/` directories in the bundle
+
+The scripts will create a complete offline package (`silo-log-pull-offline.zip` or `silo-log-pull-container-offline.zip`) with extraction scripts and documentation.
+
+**Use cases for including logs:**
+- Air-gapped two-step workflows (download on lowside, decrypt on highside)
+- Backup and archival purposes
+- Development and testing across multiple systems
+
 ## Container Image Transfer
 
 For container deployments, export the image on a connected system and import on the offline system. See [Building Images - Exporting for Offline Systems](building-images.md#exporting-images-for-offline-systems) for instructions.

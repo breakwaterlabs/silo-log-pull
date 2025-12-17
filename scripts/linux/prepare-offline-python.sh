@@ -11,6 +11,7 @@ APP_DIR="${REPOBASE}/app"
 DEPS_DIR="${APP_DIR}/silo-dependencies"
 TEMP_DIR="${REPOBASE}/.offline-temp"
 OUTPUT_ZIP="${REPOBASE}/silo-log-pull-offline.zip"
+INCLUDE_LOGS=false
 
 # ANSI color codes
 GREEN='\033[0;32m'
@@ -18,6 +19,21 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --include-logs)
+            INCLUDE_LOGS=true
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [--include-logs]"
+            exit 1
+            ;;
+    esac
+done
 
 # Check if Python 3 is installed
 if ! command -v python3 >/dev/null 2>&1; then
@@ -37,6 +53,28 @@ if ! command -v zip >/dev/null 2>&1; then
     echo "Please install zip: sudo apt install zip"
     exit 1
 fi
+
+# Prompt for log inclusion if not specified via command line
+if [ "$INCLUDE_LOGS" = false ]; then
+    SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+    LOG_DETAILS=$("${SCRIPT_DIR}/get-log-details.sh")
+
+    echo ""
+    echo -e "${YELLOW}Do you want to include existing logs in the offline bundle?${RESET}"
+    echo "$LOG_DETAILS"
+    echo -n "Include logs? [y/N]: "
+    read -r response
+    if [ "$response" = "y" ] || [ "$response" = "Y" ]; then
+        INCLUDE_LOGS=true
+    fi
+fi
+
+if [ "$INCLUDE_LOGS" = true ]; then
+    echo -e "${GREEN}Logs will be included in the offline bundle${RESET}"
+else
+    echo -e "${RESET}Logs will be excluded from the offline bundle${RESET}"
+fi
+echo ""
 
 echo -e "${GREEN}Creating dependencies directory...${RESET}"
 mkdir -p "${DEPS_DIR}"
@@ -260,13 +298,21 @@ cd "${REPOBASE}"
 # Remove old zip if it exists
 rm -f "${OUTPUT_ZIP}"
 
+# Build exclusion list
+EXCLUSIONS="-x app/venv/* app/__pycache__/* app/data/silo_config.json app/data/token.txt"
+EXCLUSIONS="$EXCLUSIONS scripts/*/__pycache__/*"
+
+# Conditionally exclude logs
+if [ "$INCLUDE_LOGS" = false ]; then
+    EXCLUSIONS="$EXCLUSIONS app/data/logs/* app/data/logs_out/*"
+fi
+
 # Create the zip with all necessary files
 zip -r "${OUTPUT_ZIP}" \
     app/ \
     docs/ \
     scripts/ \
-    -x "app/venv/*" "app/__pycache__/*" "app/data/logs/*" "app/data/silo_config.json" "app/data/token.txt" \
-    -x "scripts/*/__pycache__/*"
+    $EXCLUSIONS
 
 # Add the extraction scripts and README from temp dir
 cd "${TEMP_DIR}"

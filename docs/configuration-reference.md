@@ -21,6 +21,27 @@ After downloading and extracting the repository, configure your environment:
 
 See [example configurations](example_configs/) for common usage patterns.
 
+### data_dir.txt Override (Optional)
+
+For easier configuration management, you can create a `data_dir.txt` file in the `app/` directory (same location as `silo_batch_pull.py`):
+
+1. Create `app/data_dir.txt`
+2. Add a single line containing the path to your data directory
+3. The path can be absolute or relative to the script directory
+4. When active, you'll see "Data folder has been redirected" on startup
+
+**Example `data_dir.txt`:**
+```
+/path/to/my/data
+```
+
+**Configuration priority:** `data_dir.txt` overrides the default but is overridden by the `SILO_DATA_DIR` environment variable.
+
+**Use cases:**
+- Multiple deployment environments with different paths
+- Keeping credentials separate from the script directory
+- Docker deployments with custom mount points
+
 ## All Available Settings
 
 Below are all available settings with their default values:
@@ -54,7 +75,7 @@ Below are all available settings with their default values:
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `data_dir` | string | `"data"` | Base directory for config files and logs. All relative paths are resolved from here. |
+| `data_dir` | string | `"data"` | **DEPRECATED in config file.** Use `data_dir.txt` file or `SILO_DATA_DIR` environment variable instead. Base directory for all relative paths. |
 | `settings_file` | string | `"silo_config.json"` | Path to config file (relative to `data_dir` if not absolute). |
 | `non_interactive` | boolean | `false` | Disable interactive prompts for automated execution. |
 | `log_in_directory` | string | `"logs"` | Directory to import logs from when `api_download_logs` is false (relative to `data_dir` if not absolute). |
@@ -86,10 +107,11 @@ export SILO_DATE_START="2024-01-01"
 export SILO_SECCURE_DECRYPT_LOGS=true
 ```
 
-Environment variables are applied in this order (later overrides earlier):
+Configuration priority order (later overrides earlier):
 1. Script defaults
-2. Environment variables
-3. Configuration file settings
+2. data_dir.txt file (if present)
+3. Environment variables (SILO_*)
+4. Configuration file settings (except deprecated data_dir)
 
 ## Path Resolution
 

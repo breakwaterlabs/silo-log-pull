@@ -31,6 +31,24 @@ Logs are written to `app/data/logs/`.
 
 For Python deployment without containers, see the [Python Guide](docs/python-guide.md).
 
+## Data Directory Configuration
+
+By default, silo-log-pull uses the `app/data/` directory for configuration and logs. To use a different location:
+
+**Option 1: data_dir.txt (Recommended)**
+
+Create `app/data_dir.txt` with a single line containing your desired path:
+```
+/path/to/data
+```
+
+**Option 2: Environment Variable**
+```bash
+export SILO_DATA_DIR=/path/to/data
+```
+
+See [Configuration Reference](docs/configuration-reference.md) and [Quick Start: Data Configuration](docs/quick-start-data-configuration.md) for details.
+
 ## Documentation
 
 - **[Full Documentation](docs/README.md)** - All guides and references

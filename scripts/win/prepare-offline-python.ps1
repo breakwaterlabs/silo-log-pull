@@ -6,7 +6,14 @@
 
 .DESCRIPTION
     Downloads Python dependencies and creates a comprehensive zip archive for offline systems
+
+.PARAMETER IncludeLogs
+    Include existing logs/ and logs_out/ directories in the offline bundle
 #>
+
+param(
+    [switch]$IncludeLogs
+)
 
 $repoBase = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $appDir = Join-Path $repoBase "app"
@@ -36,6 +43,32 @@ try {
     Write-Host "Error: pip is not available" -ForegroundColor Red
     exit 1
 }
+
+# Prompt for log inclusion if not specified
+if (-not $PSBoundParameters.ContainsKey('IncludeLogs')) {
+    $logDetails = & "$PSScriptRoot\get-log-details.ps1"
+
+    Write-Host ""
+    Write-Host "Do you want to include existing logs in the offline bundle?" -ForegroundColor Yellow
+    foreach ($logInfo in $logDetails) {
+        $displayCount = if ($logInfo.Exists) {
+            $logInfo.FileCount
+        } else {
+            "(not found)"
+        }
+        Write-Host "Files: $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
+    }
+    Write-Host -NoNewline "Include logs? [y/N]: "
+    $response = Read-Host
+    $IncludeLogs = ($response -eq 'y' -or $response -eq 'Y')
+}
+
+if ($IncludeLogs) {
+    Write-Host "Logs will be included in the offline bundle" -ForegroundColor Green
+} else {
+    Write-Host "Logs will be excluded from the offline bundle" -ForegroundColor Gray
+}
+Write-Host ""
 
 Write-Host "Creating dependencies directory..." -ForegroundColor Green
 New-Item -ItemType Directory -Force -Path $depsDir | Out-Null
@@ -280,7 +313,13 @@ Copy-Item -Path $appDir -Destination $stagingApp -Recurse -Force
 # Remove unwanted directories from app
 Remove-Item -Path (Join-Path $stagingApp "venv") -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path (Join-Path $stagingApp "__pycache__") -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path (Join-Path $stagingApp "data\logs") -Recurse -Force -ErrorAction SilentlyContinue
+
+# Conditionally remove logs based on parameter
+if (-not $IncludeLogs) {
+    Remove-Item -Path (Join-Path $stagingApp "data\logs") -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path (Join-Path $stagingApp "data\logs_out") -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 Remove-Item -Path (Join-Path $stagingApp "data\silo_config.json") -Force -ErrorAction SilentlyContinue
 Remove-Item -Path (Join-Path $stagingApp "data\token.txt") -Force -ErrorAction SilentlyContinue
 

@@ -6,7 +6,14 @@
 
 .DESCRIPTION
     Exports the silo-log-pull container image and creates a comprehensive archive for offline systems
+
+.PARAMETER IncludeLogs
+    Include existing logs/ and logs_out/ directories in the offline bundle
 #>
+
+param(
+    [switch]$IncludeLogs
+)
 
 $repoBase = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tempDir = Join-Path $repoBase ".offline-temp-container"
@@ -39,6 +46,32 @@ try {
     exit 1
 }
 
+# Prompt for log inclusion if not specified
+if (-not $PSBoundParameters.ContainsKey('IncludeLogs')) {
+    $logDetails = & "$PSScriptRoot\get-log-details.ps1"
+
+    Write-Host ""
+    Write-Host "Do you want to include existing logs in the offline bundle?" -ForegroundColor Yellow
+    foreach ($logInfo in $logDetails) {
+        $displayCount = if ($logInfo.Exists) {
+            $logInfo.FileCount
+        } else {
+            "(not found)"
+        }
+        Write-Host "Files: $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
+    }
+    Write-Host -NoNewline "Include logs? [y/N]: "
+    $response = Read-Host
+    $IncludeLogs = ($response -eq 'y' -or $response -eq 'Y')
+}
+
+if ($IncludeLogs) {
+    Write-Host "Logs will be included in the offline bundle" -ForegroundColor Green
+} else {
+    Write-Host "Logs will be excluded from the offline bundle" -ForegroundColor Gray
+}
+Write-Host ""
+
 Write-Host "Creating temporary directory structure..." -ForegroundColor Green
 New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $tempDir "app\data") | Out-Null
@@ -47,6 +80,22 @@ New-Item -ItemType Directory -Force -Path (Join-Path $tempDir "app\data") | Out-
 $exampleConfig = Join-Path $repoBase "app\data\example_silo_config.json"
 if (Test-Path $exampleConfig) {
     Copy-Item -Path $exampleConfig -Destination (Join-Path $tempDir "app\data\")
+}
+
+# Conditionally copy logs if requested
+if ($IncludeLogs) {
+    $logsDir = Join-Path $repoBase "app\data\logs"
+    $logsOutDir = Join-Path $repoBase "app\data\logs_out"
+
+    if (Test-Path $logsDir) {
+        Write-Host "Adding logs directory..." -ForegroundColor Gray
+        Copy-Item -Path $logsDir -Destination (Join-Path $tempDir "app\data\logs") -Recurse -Force
+    }
+
+    if (Test-Path $logsOutDir) {
+        Write-Host "Adding logs_out directory..." -ForegroundColor Gray
+        Copy-Item -Path $logsOutDir -Destination (Join-Path $tempDir "app\data\logs_out") -Recurse -Force
+    }
 }
 
 Write-Host ""

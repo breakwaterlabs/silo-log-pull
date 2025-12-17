@@ -26,9 +26,9 @@ def get_env_value(env_var, default_value, value_type=str):
     else:
         return env_value
 
+settings_file="silo_config.json"
+
 default_settings = {
-   "data_dir"       : "data",           # Base directory containing config files and logs. Used to resolve relative paths.
-   "settings_file"    : "silo_config.json", # Path to config file (relative to data_dir if not absolute).
    "non_interactive"  : False,            # Don't use interactive prompts
    "log_in_directory" : "logs",             # Directory where logs are imported from (relative to data_dir if not absolute).
    "log_out_directory" : "logs",            # Directory where post-processed logs will go (relative to data_dir if not absolute).
@@ -46,13 +46,6 @@ default_settings = {
    "output_json" : True,                    # Post-process: Save results to .JSON files?
    "output_console": True,                  # Post-process: Show logs on console window?
 }
-# Apply environment variable overrides (ENV: SILO_<KEY_NAME>)
-
-for key in default_settings.keys():
-   env_var_name = 'SILO_' + key.upper()
-   value_type = type(default_settings[key])
-   default_settings[key] = get_env_value(env_var_name, default_settings[key], value_type)
-config=default_settings
 
 if IS_DOCKER:
     print("Running in Docker mode - data files (config and logs) from /data")
@@ -64,11 +57,11 @@ def usage_abort( extra='', settings=True ):
    print("########################### FATAL ERROR ############################")
    print("####################################################################")
    if settings:
-      print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + default_settings['settings_file'])
+      print("\nMissing, incorrect, or invalid settings or files. The following settings are required in " + settings_file)
       print('   "api_org_name" : "<org>"')
       print("\nIf seccure_decrypt_logs or seccure_show_pubkey is True, then the following setting must be set to a file containing the seccure passphrase: ")
       print('   "seccure_passphrase_file" : "<seccure_key.txt>" ')
-      print('\nOtherwise you can specify an alternate settings path by setting "settings_file" in' + default_settings['settings_file'])
+      print('\nOtherwise you can specify an alternate settings path by setting "settings_file" in' + settings_file)
    else:
       print("\nSomething went wrong unrelated to reading your settings.")
       print("\nThis is probably an issue with either the Authentic8 API endpoint, or your API key / Org name.")
@@ -100,20 +93,51 @@ def resolve_paths(data_dir, filename):
       filename = os.path.join(data_dir, filename)
    return Path(filename)
 
+def get_data_dir():
+   """
+   Determine the data directory. Check for data_dir.txt in the script's directory.
+   If not found or invalid, return './data'.
+   """
+   script_dir = os.path.dirname(os.path.abspath(__file__))
+   data_dir_file = os.path.join(script_dir, "data_dir.txt")
+   print(data_dir_file)
+   os.path.isfile(data_dir_file)
+   if os.path.isfile(data_dir_file):
+      try:
+         with open(data_dir_file, "r") as f:
+            data_dir_path = f.readline().strip()
+
+         if not data_dir_path:
+            print(f"Warning: {data_dir_file} is empty. Using default './data'")
+            return os.path.join(script_dir, "data")
+
+         # Resolve relative paths relative to script directory
+         if not os.path.isabs(data_dir_path):
+            data_dir_path = os.path.join(script_dir, data_dir_path)
+
+         # Check if path is accessible
+         if path_accessible(data_dir_path, as_dir=True):
+            print(f"Using data directory from {data_dir_file}: {data_dir_path}")
+            return data_dir_path
+         else:
+            print(f"Warning: Path in {data_dir_file} is invalid or inaccessible: {data_dir_path}")
+            print(f"Using default './data'")
+            return os.path.join(script_dir, "data")
+
+      except Exception as e:
+         print(f"Warning: Could not read {data_dir_file}: {e}")
+         print(f"Using default './data'")
+         return os.path.join(script_dir, "data")
+
+   # File doesn't exist, use default
+   return os.path.join(script_dir, "data")
+
 def import_json_config(resolved_settings_filepath, defaults):
    if path_accessible(resolved_settings_filepath):
       print("Settings file found. Importing settings.")
       with open(resolved_settings_filepath, "r") as jsonfile:
          try:
             file_config = json.load(jsonfile)
-            # Check if data_dir and settings_file in file result in a different config location
-            if not (file_config.get('data_dir') is None) and not (file_config.get('settings_file') is None):
-               alternate_settings_filepath = resolve_paths(file_config['data_dir'], file_config['settings_file'])
-               if alternate_settings_filepath != resolved_settings_filepath:
-                  print(f"Found alternate settings path, using that instead: {alternate_settings_filepath}")
-                  resolved_settings_filepath = alternate_settings_filepath
-                  with open(alternate_settings_filepath, "r") as altfile:
-                     file_config = json.load( file_config['settings_file'] )
             print("\nSuccessfully read config file at " + resolved_settings_filepath._str)
          except:
             usage_abort("Could not parse settings file '" + resolved_settings_filepath._str + "' as valid JSON. Either fix the file, rename it, or delete it and this script will create a new one.")
@@ -133,9 +157,10 @@ def import_json_config(resolved_settings_filepath, defaults):
       elif type(defaults[key]) != type(file_config[key]):
          reason = "setting had wrong type in config, " + str(type(defaults[key])) + " vs " + str(type(file_config[key]))
          usedefault=True
+
       if usedefault:
          bad_settings = True
-         message = "(Used default, " + reason + ")" 
+         message = "(Used default, " + reason + ")"
          file_config[key] = defaults[key]
       else:
          message = "(from config)"
@@ -148,15 +173,26 @@ def import_json_config(resolved_settings_filepath, defaults):
    if file_config.get("api_org_name") is None:
       usage_abort( 'api_org_name must be defined.' )
    elif file_config["api_org_name"] == "":
-      usage_abort( 'api_org_name must not be blank.' ) 
+      usage_abort( 'api_org_name must not be blank.' )
    return file_config
 
-default_settings_file = resolve_paths(default_settings['data_dir'], default_settings['settings_file'])
+
+# Determine data directory at the outset
+DATA_DIR = get_data_dir()
+
+# Apply environment variable overrides (ENV: SILO_<KEY_NAME>)
+for key in default_settings.keys():
+   env_var_name = 'SILO_' + key.upper()
+   value_type = type(default_settings[key])
+   default_settings[key] = get_env_value(env_var_name, default_settings[key], value_type)
+config=default_settings
+
+default_settings_file = resolve_paths(DATA_DIR, settings_file)
 config = import_json_config( default_settings_file, default_settings)
-config["api_token_file"] = resolve_paths(config["data_dir"], config["api_token_file"])
-config["seccure_passphrase_file"] = resolve_paths(config["data_dir"], config["seccure_passphrase_file"])
-config["log_in_directory"] = resolve_paths(config["data_dir"], config["log_in_directory"])
-config["log_out_directory"] = resolve_paths(config["data_dir"], config["log_out_directory"])
+config["api_token_file"] = resolve_paths(DATA_DIR, config["api_token_file"])
+config["seccure_passphrase_file"] = resolve_paths(DATA_DIR, config["seccure_passphrase_file"])
+config["log_in_directory"] = resolve_paths(DATA_DIR, config["log_in_directory"])
+config["log_out_directory"] = resolve_paths(DATA_DIR, config["log_out_directory"])
 
 if config["seccure_decrypt_logs"] or config["seccure_show_pubkey"]:
    import seccure

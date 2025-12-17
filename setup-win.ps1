@@ -46,16 +46,20 @@ function Show-Menu {
         Write-Host ""
     }
 
-    Write-Host "1. Run systems test"
+    # Highlight container/system options in yellow when not admin
+    $color = if ($isAdmin) { "White" } else { "Yellow" }
+
+    Write-Host "1. Run systems test" -ForegroundColor $color
     Write-Host "2. Install Python dependencies (venv)"
-    Write-Host "3. Build local container"
-    Write-Host "4. Pull container from registry"
+    Write-Host "3. Build local container" -ForegroundColor $color
+    Write-Host "4. Pull container from registry" -ForegroundColor $color
     Write-Host "5. Prepare offline Python package"
-    Write-Host "6. Prepare offline container package"
+    Write-Host "6. Prepare offline container package" -ForegroundColor $color
     Write-Host "7. Schedule execution (Task Scheduler)"
-    Write-Host "8. Exit"
+    Write-Host "8. Run script (Python or Container)"
+    Write-Host "9. Exit"
     Write-Host ""
-    Write-Host -NoNewline "Select an option [1-8]: "
+    Write-Host -NoNewline "Select an option [1-9]: "
 }
 
 function Invoke-ScriptAndPause {
@@ -132,13 +136,16 @@ while ($true) {
                 -Message "Showing schedule execution instructions..."
         }
         "8" {
+            & (Join-Path $scriptsDir "run-script.ps1")
+        }
+        "9" {
             Write-Host ""
             Write-Host "Exiting..." -ForegroundColor Green
             exit 0
         }
         default {
             Write-Host ""
-            Write-Host "Invalid option. Please select 1-8." -ForegroundColor Red
+            Write-Host "Invalid option. Please select 1-9." -ForegroundColor Red
             Write-Host ""
             Write-Host -NoNewline "Press Enter to continue..."
             $null = Read-Host
