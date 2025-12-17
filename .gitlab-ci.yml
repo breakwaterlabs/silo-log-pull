@@ -17,7 +17,7 @@
 # No configuration needed - this works out of the box with GitLab's built-in registry and Pages
 
 stages:
-  - docs
+#  - docs
   - build
   - publish
 
