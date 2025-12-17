@@ -301,7 +301,7 @@ pages:
     expire_in: never
   rules:
     # Only run on main branch or tags
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
 
 # Build and test the image on all branches
@@ -355,5 +355,5 @@ publish:
       fi
   rules:
     # Only publish on main branch or tags
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
