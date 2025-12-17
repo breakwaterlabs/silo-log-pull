@@ -1,16 +1,20 @@
 # GitLab CI/CD Configuration for silo-log-pull
 #
 # This pipeline automatically:
-# 1. Builds the Docker image on every commit
-# 2. Tests basic functionality
-# 3. Publishes to GitLab Container Registry on main branch and tags
+# 1. Generates documentation (HTML + PDF) and publishes to GitLab Pages (main/tags only)
+# 2. Builds the Docker image on every commit
+# 3. Tests basic functionality
+# 4. Publishes to GitLab Container Registry on main branch and tags
+#
+# Documentation will be available at:
+#   https://breakwaterlabs.gitlab.io/silo-log-pull/
 #
 # Images will be available at:
 #   registry.gitlab.com/breakwaterlabs/silo-log-pull:latest
 #   registry.gitlab.com/breakwaterlabs/silo-log-pull:v1.0.0 (for version tags)
 #   registry.gitlab.com/breakwaterlabs/silo-log-pull:abc1234 (commit SHA)
 #
-# No configuration needed - this works out of the box with GitLab's built-in registry
+# No configuration needed - this works out of the box with GitLab's built-in registry and Pages
 
 stages:
   - docs
@@ -23,6 +27,282 @@ variables:
   # Use Docker-in-Docker
   DOCKER_DRIVER: overlay2
   DOCKER_TLS_CERTDIR: "/certs"
+
+# Generate documentation and publish to GitLab Pages
+pages:
+  stage: docs
+  image: pandoc/latex:latest
+  script:
+    # Create output directories
+    - mkdir -p public/html public/pdf
+
+    # Copy original markdown files
+    - cp -r docs/* public/
+
+    # Generate individual HTML files for main docs
+    - |
+      for md_file in docs/*.md; do
+        if [ -f "$md_file" ]; then
+          filename=$(basename "$md_file" .md)
+          title=$(echo "$filename" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
+          echo "Converting $filename.md to HTML..."
+          pandoc "$md_file" \
+            -f markdown \
+            -t html5 \
+            --standalone \
+            --self-contained \
+            --toc \
+            --toc-depth=3 \
+            --css=https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css \
+            --metadata title="$title" \
+            -o "public/html/${filename}.html"
+        fi
+      done
+
+    # Generate HTML for example configs
+    - |
+      for md_file in docs/example_configs/*/README.md; do
+        if [ -f "$md_file" ]; then
+          dirname=$(basename "$(dirname "$md_file")")
+          echo "Converting example_configs/$dirname/README.md to HTML..."
+          pandoc "$md_file" \
+            -f markdown \
+            -t html5 \
+            --standalone \
+            --self-contained \
+            --toc \
+            --toc-depth=3 \
+            --css=https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css \
+            --metadata title="Example: $dirname" \
+            -o "public/html/example_${dirname}.html"
+        fi
+      done
+
+    # Generate single combined PDF with all documentation in order
+    - |
+      echo "Generating combined PDF documentation..."
+      pandoc \
+        docs/README.md \
+        docs/container-guide.md \
+        docs/python-guide.md \
+        docs/offline-systems.md \
+        docs/scheduled-execution.md \
+        docs/configuration-reference.md \
+        docs/example_configs/README.md \
+        docs/example_configs/general-oneshot-download-and-decrypt/README.md \
+        docs/example_configs/2-step_lowside/README.md \
+        docs/example_configs/2-step_highside/README.md \
+        docs/building-images.md \
+        -f markdown \
+        -t pdf \
+        --pdf-engine=xelatex \
+        --toc \
+        --toc-depth=3 \
+        -V geometry:margin=1in \
+        -V documentclass=article \
+        -V papersize=letter \
+        --metadata title="silo-log-pull Documentation" \
+        --metadata author="Breakwater Labs" \
+        -o "public/pdf/silo-log-pull-documentation.pdf"
+
+    # Create navigation index page
+    - |
+      cat > public/index.html <<'EOF'
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>silo-log-pull Documentation</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+            color: #24292e;
+          }
+          h1 {
+            color: #24292e;
+            border-bottom: 2px solid #0366d6;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+          }
+          h2 {
+            color: #0366d6;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e1e4e8;
+            padding-bottom: 8px;
+          }
+          .pdf-download {
+            background: #0366d6;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 6px;
+            display: inline-block;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 0;
+          }
+          .pdf-download:hover {
+            background: #0256d6;
+          }
+          .docs-section {
+            margin: 30px 0;
+          }
+          ul {
+            list-style: none;
+            padding: 0;
+          }
+          li {
+            margin: 10px 0;
+            padding: 15px;
+            background: #f6f8fa;
+            border-radius: 6px;
+            border-left: 3px solid #0366d6;
+          }
+          .doc-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+          }
+          a {
+            color: #0366d6;
+            text-decoration: none;
+            margin-right: 15px;
+          }
+          a:hover {
+            text-decoration: underline;
+          }
+          .format {
+            font-size: 0.9em;
+            color: #586069;
+          }
+          .intro {
+            background: #fff5e6;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>🚀 silo-log-pull Documentation</h1>
+
+        <div class="intro">
+          <p><strong>Welcome to silo-log-pull!</strong> Choose your preferred format below to access the documentation.</p>
+        </div>
+
+        <div class="docs-section">
+          <h2>📄 Complete Documentation</h2>
+          <p>Download the comprehensive documentation as a single PDF:</p>
+          <a href="pdf/silo-log-pull-documentation.pdf" class="pdf-download">📥 Download Complete PDF</a>
+        </div>
+
+        <div class="docs-section">
+          <h2>📚 Browse Documentation by Topic</h2>
+
+          <h3>Getting Started</h3>
+          <ul>
+            <li>
+              <div class="doc-title">Documentation Index</div>
+              <a href="html/README.html">View HTML</a>
+              <a href="README.md">View Markdown</a>
+            </li>
+          </ul>
+
+          <h3>Deployment Guides</h3>
+          <ul>
+            <li>
+              <div class="doc-title">Container Guide</div>
+              <div class="format">Docker/Podman deployment on Linux, macOS, and Windows</div>
+              <a href="html/container-guide.html">View HTML</a>
+              <a href="container-guide.md">View Markdown</a>
+            </li>
+            <li>
+              <div class="doc-title">Python Guide</div>
+              <div class="format">Direct Python execution without containers</div>
+              <a href="html/python-guide.html">View HTML</a>
+              <a href="python-guide.md">View Markdown</a>
+            </li>
+            <li>
+              <div class="doc-title">Offline Systems</div>
+              <div class="format">Deployment on air-gapped systems</div>
+              <a href="html/offline-systems.html">View HTML</a>
+              <a href="offline-systems.md">View Markdown</a>
+            </li>
+            <li>
+              <div class="doc-title">Scheduled Execution</div>
+              <div class="format">Automation with cron, systemd, and Task Scheduler</div>
+              <a href="html/scheduled-execution.html">View HTML</a>
+              <a href="scheduled-execution.md">View Markdown</a>
+            </li>
+          </ul>
+
+          <h3>Configuration</h3>
+          <ul>
+            <li>
+              <div class="doc-title">Configuration Reference</div>
+              <div class="format">Complete settings and options reference</div>
+              <a href="html/configuration-reference.html">View HTML</a>
+              <a href="configuration-reference.md">View Markdown</a>
+            </li>
+            <li>
+              <div class="doc-title">Example Configurations</div>
+              <div class="format">Pre-built configuration examples for common scenarios</div>
+              <a href="html/README.html#example-configurations">View HTML</a>
+              <a href="example_configs/">Browse Examples</a>
+            </li>
+          </ul>
+
+          <h3>Example Scenarios</h3>
+          <ul>
+            <li>
+              <div class="doc-title">General One-Shot Download and Decrypt</div>
+              <div class="format">Single-system setup for downloading and decrypting</div>
+              <a href="html/example_general-oneshot-download-and-decrypt.html">View HTML</a>
+              <a href="example_configs/general-oneshot-download-and-decrypt/">View Files</a>
+            </li>
+            <li>
+              <div class="doc-title">2-Step: Lowside (Download)</div>
+              <div class="format">Download encrypted logs on an internet-connected system</div>
+              <a href="html/example_2-step_lowside.html">View HTML</a>
+              <a href="example_configs/2-step_lowside/">View Files</a>
+            </li>
+            <li>
+              <div class="doc-title">2-Step: Highside (Decrypt)</div>
+              <div class="format">Decrypt logs on a secure, offline system</div>
+              <a href="html/example_2-step_highside.html">View HTML</a>
+              <a href="example_configs/2-step_highside/">View Files</a>
+            </li>
+          </ul>
+
+          <h3>Advanced Topics</h3>
+          <ul>
+            <li>
+              <div class="doc-title">Building Container Images</div>
+              <div class="format">Local builds and CI/CD setup</div>
+              <a href="html/building-images.html">View HTML</a>
+              <a href="building-images.md">View Markdown</a>
+            </li>
+          </ul>
+        </div>
+      </body>
+      </html>
+      EOF
+
+    - echo "Documentation generated successfully!"
+    - ls -lah public/
+  artifacts:
+    paths:
+      - public
+    expire_after: never
+  rules:
+    # Only run on main branch or tags
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
 
 # Build and test the image on all branches
 build:
