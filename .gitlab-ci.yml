@@ -303,6 +303,7 @@ pages:
   artifacts:
     paths:
       - public
+      - output
     expire_in: never
   rules:
     # Only run on main branch or tags
