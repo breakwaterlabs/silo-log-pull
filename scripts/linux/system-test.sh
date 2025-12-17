@@ -10,7 +10,7 @@
 
 set -o pipefail
 
-REPOBASE="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+REPOBASE="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
 
 # ANSI color codes
 GREEN='\033[0;32m'
@@ -21,8 +21,8 @@ YELLOW='\033[0;33m'
 RESET='\033[0m'
 
 # Terminal-compatible symbols
-CHECK_MARK= " + " #"✅" #"✓"
-X_MARK= " X " #"✗"
+CHECK_MARK=" + " #"✅" #"✓"
+X_MARK=" X " #"✗"
 INFO_MARK=" ? " #"ℹ"
 
 # Global variables

@@ -27,12 +27,14 @@ param(
     [string]$Mode = 'All'
 )
 
-$script:repoBase = Split-Path -Parent $PSScriptRoot
+$script:repoBase = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
 # Information hashtable
 $script:Info = @{}
 $script:Failures = 0
 $script:AvailableModes = @()
+$script:IsAdmin = $false
+$script:ContainerEngineNotRunning = $false
 
 function Write-TestResult {
     [CmdletBinding()]
@@ -60,35 +62,36 @@ function Write-TestResult {
         $script:Info[$InfoName] = $valueToStore
     }
 
-    # ANSI color codes
-    $Green = "`e[32m"
-    $Red = "`e[31m"
-    $Cyan = "`e[36m"
-    $Yellow = "`e[33m"
-    $Reset = "`e[0m"
-
     # Set color and symbol based on status
-    $color = switch ($Status) {
-        'Pass' { $Green; "+" }
+    $colorName = switch ($Status) {
+        'Pass' {
+            'Green'
+            $symbol = "+"
+        }
         'Fail' {
             $script:Failures++
-            $Red; "X"
+            'Red'
+            $symbol = "X"
         }
-        'Warn' { $Yellow; "!" }
-        'Info' { $Reset; "-" }
+        'Warn' {
+            'Yellow'
+            $symbol = "!"
+        }
+        'Info' {
+            'White'
+            $symbol = "-"
+        }
     }
-    $symbol = $color[1]
-    $color = $color[0]
 
-    # Fixed-width alignment at column 45
+    # Fixed-width alignment at column 50
     # Format: [symbol]  [message with padding]: [value]
     $width = 50 - 4 - 2  # 50 - " X  " - ": "
 
     if ($Value) {
         $paddedMessage = $Message.PadRight($width)
-        Write-Host "$color $symbol  $paddedMessage$Reset`: $Yellow$Value$Reset"
+        Write-Host -ForegroundColor $colorName " $symbol  ${paddedMessage}: $Value"
     } else {
-        Write-Host "$color $symbol  $Message$Reset"
+        Write-Host -ForegroundColor $colorName " $symbol  $Message"
     }
 }
 
@@ -108,6 +111,11 @@ function Write-SectionHeader {
     } else {
         Write-Host "`n=== $Title ===" -ForegroundColor Cyan
     }
+}
+
+function Test-IsAdministrator {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 # ============================================================================
@@ -185,6 +193,7 @@ function Test-PythonInPath {
 
 function Test-PythonRequirements {
     $requirementsPath = join-path $script:repoBase "app\requirements.txt"
+    
 
     if (-not (Test-Path $requirementsPath)) {
         Write-TestResult -Status Fail -Message "requirements.txt not found at $requirementsPath"
@@ -193,7 +202,7 @@ function Test-PythonRequirements {
 
     try {
         # Try to get pip list
-        $pipList = & python -m pip list --format=json 2>nul | ConvertFrom-Json
+        $pipList = python -m pip list --format=json 2>$null | ConvertFrom-Json 
         $installedPackages = @{}
         foreach ($pkg in $pipList) {
             $installedPackages[$pkg.name.ToLower()] = $pkg.version
@@ -240,11 +249,9 @@ function Test-VirtualizationEnabled {
     Write-SectionHeader "Container Mode Availability"
 
     try {
-        # Check if virtualization is enabled using systeminfo
-        $systemInfo = systeminfo
-        $virtLine = $systemInfo | Select-String "Virtualization Enabled In Firmware"
+        $VirtOn = (get-ciminstance Win32_Processor).VirtualizationFirmwareEnabled
 
-        if ($virtLine -match "Yes") {
+        if ($VirtOn) {
             Write-TestResult -Status Pass -Message "Virtualization is enabled in BIOS/UEFI"
             return $true
         } else {
@@ -293,46 +300,66 @@ function Test-WSLInstalled {
 }
 
 function Test-ContainerRuntime {
-    $dockerCmd = Get-Command docker -ErrorAction SilentlyContinue
-    $rancherCmd = Get-Command rdctl -ErrorAction SilentlyContinue
-
     $script:DockerFound = $false
     $script:RancherFound = $false
 
-    # Check Docker Desktop
-    if ($dockerCmd) {
-        $dockerPath = Split-Path $dockerCmd.Source
-        if ($env:PATH -like "*$dockerPath*" -or $env:PATH -like "*Docker*") {
-            # Get Docker version
-            try {
-                $dockerVersion = & docker --version 2>&1
-                if ($dockerVersion -match "version\s+([\d\.]+)") {
-                    $script:Info['docker_version'] = $Matches[1]
-                    Write-TestResult -Status Pass -Message "Docker Desktop is installed, Version" -Value $Matches[1] -InfoName 'container_engine' -InfoValue "Docker Desktop"
-                    $script:DockerFound = $true
-                }
-            } catch {}
-        }
-    }
-
-    # Check Rancher Desktop
-    if ($rancherCmd) {
-        $rancherPath = Split-Path $rancherCmd.Source
-        if ($env:PATH -like "*$rancherPath*" -or $env:PATH -like "*Rancher*") {
-            # Get Rancher version
+    # Check for Rancher Desktop (preferred) - check for actual application installation
+    $rancherExePath = "${env:ProgramFiles}\Rancher Desktop\Rancher Desktop.exe"
+    if (Test-Path $rancherExePath) {
+        $script:RancherFound = $true
+        # Try to get version from rdctl if available
+        $rancherCmd = Get-Command rdctl -ErrorAction SilentlyContinue
+        if ($rancherCmd) {
             try {
                 $rancherVersion = & rdctl version 2>&1
                 if ($rancherVersion) {
                     $script:Info['rancher_version'] = $rancherVersion
                     Write-TestResult -Status Pass -Message "Rancher Desktop is installed, Version" -Value $rancherVersion -InfoName 'container_engine' -InfoValue "Rancher Desktop"
-                    $script:RancherFound = $true
                 }
-            } catch {}
+            } catch {
+                Write-TestResult -Status Pass -Message "Rancher Desktop is installed" -InfoName 'container_engine' -InfoValue "Rancher Desktop"
+            }
+        } else {
+            Write-TestResult -Status Pass -Message "Rancher Desktop is installed" -InfoName 'container_engine' -InfoValue "Rancher Desktop"
+        }
+    }
+
+    # Check for Docker Desktop - check for actual application installation
+    $dockerExePath = "${env:ProgramFiles}\Docker\Docker\Docker Desktop.exe"
+    if (Test-Path $dockerExePath) {
+        $script:DockerFound = $true
+        # Get Docker version
+        $dockerCmd = Get-Command docker -ErrorAction SilentlyContinue
+        if ($dockerCmd) {
+            try {
+                $dockerVersion = & docker --version 2>&1
+                if ($dockerVersion -match "version\s+([\d\.]+)") {
+                    $script:Info['docker_version'] = $Matches[1]
+                    # Only report Docker Desktop if Rancher wasn't found (prefer Rancher)
+                    if (-not $script:RancherFound) {
+                        Write-TestResult -Status Pass -Message "Docker Desktop is installed, Version" -Value $Matches[1] -InfoName 'container_engine' -InfoValue "Docker Desktop"
+                    } else {
+                        Write-TestResult -Status Info -Message "Docker Desktop is also installed, Version" -Value $Matches[1]
+                    }
+                }
+            } catch {
+                if (-not $script:RancherFound) {
+                    Write-TestResult -Status Pass -Message "Docker Desktop is installed" -InfoName 'container_engine' -InfoValue "Docker Desktop"
+                } else {
+                    Write-TestResult -Status Info -Message "Docker Desktop is also installed"
+                }
+            }
+        } else {
+            if (-not $script:RancherFound) {
+                Write-TestResult -Status Pass -Message "Docker Desktop is installed" -InfoName 'container_engine' -InfoValue "Docker Desktop"
+            } else {
+                Write-TestResult -Status Info -Message "Docker Desktop is also installed"
+            }
         }
     }
 
     if (-not $script:DockerFound -and -not $script:RancherFound) {
-        Write-TestResult -Status Fail -Message "No container runtime (Docker Desktop or Rancher Desktop) found in PATH"
+        Write-TestResult -Status Fail -Message "No container runtime (Docker Desktop or Rancher Desktop) found"
         return $false
     }
 
@@ -343,6 +370,10 @@ function Test-ContainerEngineRunning {
     try {
         # Test if Docker daemon is running
         $dockerInfo = & docker info -f json 2>&1
+        if ($dockerInfo -match "Access is denied.") {
+            Write-TestResult -Status Warn -Message "Container engine running, but access is denied. Run the script as Administrator."
+            return $false
+        } 
 
         if ($LASTEXITCODE -eq 0) {
             Write-TestResult -Status Pass -Message "Container engine is running"
@@ -358,10 +389,12 @@ function Test-ContainerEngineRunning {
             return $true
         } else {
             Write-TestResult -Status Fail -Message "Container engine is not running"
+            $script:ContainerEngineNotRunning = $true
             return $false
         }
     } catch {
         Write-TestResult -Status Fail -Message "Unable to check container engine status"
+        $script:ContainerEngineNotRunning = $true
         return $false
     }
 }
@@ -391,6 +424,14 @@ function Test-ContainerEngineInfo {
 # ============================================================================
 
 Write-SectionHeader -Title "System Requirements Check" -Major
+
+# Check admin permissions
+$script:IsAdmin = Test-IsAdministrator
+if ($script:IsAdmin) {
+    Write-TestResult -Status Info -Message "Running with Administrator privileges"
+} else {
+    Write-TestResult -Status Info -Message "Running without Administrator privileges"
+}
 
 # General checks (always run)
 Test-WindowsVersion
@@ -422,31 +463,32 @@ Write-SectionHeader -Title "Summary" -Major
 
 Write-SectionHeader -Title "Available  Modes"
 if ($script:AvailableModes.Count -eq 0) {
-    $Yellow = "`e[33m"
-    $Reset = "`e[0m"
-    Write-Host "  ${Yellow}No usable modes detected${Reset}"
-    Write-Host "  You may need to install Python 3 or a container runtime (Docker/Rancher Desktop)"
+    Write-Host -ForegroundColor Yellow "  No usable modes detected"
+    Write-Host -ForegroundColor Yellow "  You may need to install Python 3 or a container runtime (Docker/Rancher Desktop)"
 } else {
-    $Green = "`e[32m"
-    $Reset = "`e[0m"
     foreach ($mode in $script:AvailableModes) {
-        Write-Host "${Green} + $mode${Reset}"
+        Write-Host -ForegroundColor Green " + $mode"
     }
 }
 
 if ($script:Failures -gt 0) {
-    $Red = "`e[31m"
-    $Reset = "`e[0m"
-    Write-Host "`n${Red}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${Reset}"
-    Write-Host "${Red}You have $($script:Failures) failure(s).${Reset}"
-    Write-Host "${Red}Please review the issues above.${Reset}"
-    Write-Host "${Red}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${Reset}"
-    Write-Host "`nReview the documentation here:"
+    Write-Host ""
+    Write-Host -ForegroundColor Red "=========================================="
+    Write-Host -ForegroundColor Red "You have $($script:Failures) failure(s)."
+    Write-Host -ForegroundColor Red "Please review the issues above."
+    Write-Host -ForegroundColor Red "=========================================="
+    Write-Host ""
+    Write-Host "Review the documentation here:"
     Write-Host "https://gitlab.com/breakwaterlabs/silo-log-pull/-/tree/main/docs"
 } else {
-    $Green = "`e[32m"
-    $Reset = "`e[0m"
-    Write-Host "`n${Green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${Reset}"
-    Write-Host "${Green}All checks completed successfully!${Reset}"
-    Write-Host "${Green}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${Reset}"
+    Write-Host ""
+    Write-Host -ForegroundColor Green "=========================================="
+    Write-Host -ForegroundColor Green "All checks completed successfully!"
+    Write-Host -ForegroundColor Green "=========================================="
+}
+
+# Handle container engine not running
+if ($script:ContainerEngineNotRunning) {
+    $fixScriptPath = Join-Path $PSScriptRoot "fix-container-engine.ps1"
+    & $fixScriptPath -DockerFound $script:DockerFound -RancherFound $script:RancherFound -IsAdmin $script:IsAdmin
 }

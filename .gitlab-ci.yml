@@ -13,6 +13,7 @@
 # No configuration needed - this works out of the box with GitLab's built-in registry
 
 stages:
+  - docs
   - build
   - publish
 
