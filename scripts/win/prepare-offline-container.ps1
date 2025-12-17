@@ -54,11 +54,11 @@ if (-not $PSBoundParameters.ContainsKey('IncludeLogs')) {
     Write-Host "Do you want to include existing logs in the offline bundle?" -ForegroundColor Yellow
     foreach ($logInfo in $logDetails) {
         $displayCount = if ($logInfo.Exists) {
-            $logInfo.FileCount
+            "Files: $($logInfo.FileCount)"
         } else {
             "(not found)"
         }
-        Write-Host "Files: $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
+        Write-Host "   $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
     }
     Write-Host -NoNewline "Include logs? [y/N]: "
     $response = Read-Host
@@ -329,9 +329,6 @@ Copy-Item -Path (Join-Path $repoBase "docs") -Destination (Join-Path $tempDir "d
 
 Write-Host "Adding scripts directory..." -ForegroundColor Gray
 Copy-Item -Path (Join-Path $repoBase "scripts") -Destination (Join-Path $tempDir "scripts") -Recurse -Force
-
-# Remove data_dir.txt if it was copied
-Remove-Item -Path (Join-Path $tempDir "data_dir.txt") -Force -ErrorAction SilentlyContinue
 
 # Create the zip with all necessary files
 Write-Host "Compressing archive..." -ForegroundColor Gray

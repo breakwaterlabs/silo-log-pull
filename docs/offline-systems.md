@@ -4,36 +4,103 @@ This guide covers deploying silo-log-pull on systems without internet access.
 
 ## Automated Offline Packaging (Recommended)
 
-The repository includes scripts to automate offline package creation with optional log bundling:
+The repository includes a unified script to automate offline package creation. You can include Python dependencies, container images, and logs in any combination:
+
+### Interactive Mode (Default)
 
 **Windows PowerShell:**
 ```powershell
-# Python dependencies package
-.\scripts\win\prepare-offline-python.ps1 [-IncludeLogs]
-
-# Container image package
-.\scripts\win\prepare-offline-container.ps1 [-IncludeLogs]
+.\scripts\win\prepare-offline-bundle.ps1
 ```
 
 **Linux/macOS:**
 ```bash
-# Python dependencies package
-./scripts/linux/prepare-offline-python.sh [--include-logs]
-
-# Container image package
-./scripts/linux/prepare-offline-container.sh [--include-logs]
+./scripts/linux/prepare-offline-bundle.sh
 ```
 
-**Log Bundling Options:**
-- Without the flag: Script will prompt interactively whether to include logs
-- With the flag: Automatically includes both `logs/` and `logs_out/` directories in the bundle
+When run without parameters, you'll see an interactive menu:
 
-The scripts will create a complete offline package (`silo-log-pull-offline.zip` or `silo-log-pull-container-offline.zip`) with extraction scripts and documentation.
+```
+╔══════════════════════════════════════════════════════════════╗
+║          Silo Log Pull - Offline Bundle Generator            ║
+╚══════════════════════════════════════════════════════════════╝
 
-**Use cases for including logs:**
-- Air-gapped two-step workflows (download on lowside, decrypt on highside)
-- Backup and archival purposes
-- Development and testing across multiple systems
+What would you like to include in the offline bundle?
+
+  [1] Python deployment (with dependencies)
+  [2] Container deployment (Docker/Podman image)
+  [3] Both Python and Container
+  [4] Custom selection
+
+Choice [1-4]: _
+```
+
+The script will then show you the log files it finds and ask if you want to include them.
+
+### Command-Line Mode
+
+For automation or scripting, use command-line flags:
+
+**Windows PowerShell:**
+```powershell
+# Python only
+.\scripts\win\prepare-offline-bundle.ps1 -IncludePython
+
+# Container only
+.\scripts\win\prepare-offline-bundle.ps1 -IncludeContainer
+
+# Both with logs
+.\scripts\win\prepare-offline-bundle.ps1 -IncludePython -IncludeContainer -IncludeLogs
+
+# Non-interactive container bundle
+.\scripts\win\prepare-offline-bundle.ps1 -IncludeContainer -NonInteractive
+```
+
+**Linux/macOS:**
+```bash
+# Python only
+./scripts/linux/prepare-offline-bundle.sh --python
+
+# Container only
+./scripts/linux/prepare-offline-bundle.sh --container
+
+# Both with logs
+./scripts/linux/prepare-offline-bundle.sh --python --container --logs
+
+# Non-interactive container bundle
+./scripts/linux/prepare-offline-bundle.sh --container --non-interactive
+```
+
+### Output Files
+
+The script creates appropriately named packages based on what you include:
+
+- `silo-log-pull-offline.zip` - Python dependencies only
+- `silo-log-pull-container-offline.zip` - Container image only
+- `silo-log-pull-full-offline.zip` - Both Python and container
+
+Each package includes:
+- Application files (excluding sensitive data)
+- Clean `app/data/` structure with empty `logs/` and `logs_out/` directories
+- Example configuration files
+- Platform-specific extraction scripts
+- Complete documentation
+- README-OFFLINE.txt with setup instructions
+
+### Log Bundling
+
+**When logs are included:**
+- Logs are copied from their actual locations (determined by `data_dir.txt` and `silo_config.json`)
+- Works correctly even if logs are redirected to custom directories
+- Useful for:
+  - Air-gapped two-step workflows (download on lowside, decrypt on highside)
+  - Backup and archival purposes
+  - Development and testing across multiple systems
+
+**When logs are excluded:**
+- Package contains empty log directories ready for use
+- Smaller package size
+- No risk of accidentally including sensitive log data
 
 ## Container Image Transfer
 

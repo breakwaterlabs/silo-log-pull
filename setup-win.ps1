@@ -53,13 +53,12 @@ function Show-Menu {
     Write-Host "2. Install Python dependencies (venv)"
     Write-Host "3. Build local container" -ForegroundColor $color
     Write-Host "4. Pull container from registry" -ForegroundColor $color
-    Write-Host "5. Prepare offline Python package"
-    Write-Host "6. Prepare offline container package" -ForegroundColor $color
-    Write-Host "7. Schedule execution (Task Scheduler)"
-    Write-Host "8. Run script (Python or Container)"
-    Write-Host "9. Exit"
+    Write-Host "5. Prepare offline bundle"
+    Write-Host "6. Schedule execution (Task Scheduler)"
+    Write-Host "7. Run script (Python or Container)"
+    Write-Host "8. Exit"
     Write-Host ""
-    Write-Host -NoNewline "Select an option [1-9]: "
+    Write-Host -NoNewline "Select an option [1-8]: "
 }
 
 function Invoke-ScriptAndPause {
@@ -122,30 +121,25 @@ while ($true) {
         }
         "5" {
             Invoke-ScriptAndPause `
-                -ScriptPath (Join-Path $scriptsDir "prepare-offline-python.ps1") `
-                -Message "Preparing offline Python package..."
+                -ScriptPath (Join-Path $scriptsDir "prepare-offline-bundle.ps1") `
+                -Message "Preparing offline bundle..."
         }
         "6" {
-            Invoke-ScriptAndPause `
-                -ScriptPath (Join-Path $scriptsDir "prepare-offline-container.ps1") `
-                -Message "Preparing offline container package..."
-        }
-        "7" {
             Invoke-ScriptAndPause `
                 -ScriptPath (Join-Path $scriptsDir "schedule-taskscheduler.ps1") `
                 -Message "Showing schedule execution instructions..."
         }
-        "8" {
+        "7" {
             & (Join-Path $scriptsDir "run-script.ps1")
         }
-        "9" {
+        "8" {
             Write-Host ""
             Write-Host "Exiting..." -ForegroundColor Green
             exit 0
         }
         default {
             Write-Host ""
-            Write-Host "Invalid option. Please select 1-9." -ForegroundColor Red
+            Write-Host "Invalid option. Please select 1-8." -ForegroundColor Red
             Write-Host ""
             Write-Host -NoNewline "Press Enter to continue..."
             $null = Read-Host

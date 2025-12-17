@@ -52,11 +52,11 @@ if (-not $PSBoundParameters.ContainsKey('IncludeLogs')) {
     Write-Host "Do you want to include existing logs in the offline bundle?" -ForegroundColor Yellow
     foreach ($logInfo in $logDetails) {
         $displayCount = if ($logInfo.Exists) {
-            $logInfo.FileCount
+            "Files: $($logInfo.FileCount)"
         } else {
             "(not found)"
         }
-        Write-Host "Files: $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
+        Write-Host "   $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
     }
     Write-Host -NoNewline "Include logs? [y/N]: "
     $response = Read-Host

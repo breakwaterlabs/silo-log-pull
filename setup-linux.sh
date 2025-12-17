@@ -34,14 +34,13 @@ show_menu() {
     echo "2. Install Python dependencies (venv)"
     echo "3. Build local container"
     echo "4. Pull container from registry"
-    echo "5. Prepare offline Python package"
-    echo "6. Prepare offline container package"
-    echo "7. Schedule execution (cron)"
-    echo "8. Install as systemd service"
-    echo "9. Run script (Python or Container)"
-    echo "10. Exit"
+    echo "5. Prepare offline bundle"
+    echo "6. Schedule execution (cron)"
+    echo "7. Install as systemd service"
+    echo "8. Run script (Python or Container)"
+    echo "9. Exit"
     echo ""
-    echo -n "Select an option [1-10]: "
+    echo -n "Select an option [1-9]: "
 }
 
 pause() {
@@ -82,38 +81,32 @@ main() {
                 pause
                 ;;
             5)
-                echo -e "${GREEN}Preparing offline Python package...${RESET}"
+                echo -e "${GREEN}Preparing offline bundle...${RESET}"
                 echo ""
-                bash "${SCRIPTS_DIR}/prepare-offline-python.sh"
+                bash "${SCRIPTS_DIR}/prepare-offline-bundle.sh"
                 pause
                 ;;
             6)
-                echo -e "${GREEN}Preparing offline container package...${RESET}"
-                echo ""
-                bash "${SCRIPTS_DIR}/prepare-offline-container.sh"
-                pause
-                ;;
-            7)
                 echo -e "${GREEN}Showing schedule execution instructions...${RESET}"
                 echo ""
                 bash "${SCRIPTS_DIR}/schedule-cron.sh"
                 pause
                 ;;
-            8)
+            7)
                 echo -e "${GREEN}Showing systemd service installation...${RESET}"
                 echo ""
                 bash "${SCRIPTS_DIR}/install-systemd-service.sh"
                 pause
                 ;;
-            9)
+            8)
                 bash "${SCRIPTS_DIR}/run-script.sh"
                 ;;
-            10)
+            9)
                 echo -e "${GREEN}Exiting...${RESET}"
                 exit 0
                 ;;
             *)
-                echo -e "${RED}Invalid option. Please select 1-10.${RESET}"
+                echo -e "${RED}Invalid option. Please select 1-9.${RESET}"
                 pause
                 ;;
         esac

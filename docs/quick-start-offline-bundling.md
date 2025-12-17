@@ -1,69 +1,141 @@
-# Quick Start: Offline Bundle with Logs
+# Quick Start: Offline Bundle Creation
 
 ## Overview
 
-When creating offline packages, you can optionally include existing logs for transfer to air-gapped systems.
+The unified offline bundle script allows you to create customized packages for air-gapped systems, choosing Python dependencies, container images, and optionally including logs.
 
-## Python Offline Bundle
-
-### Interactive Mode
-
-Run the script and respond to the prompt:
+## Quick Start - Interactive Mode (Recommended)
 
 **Windows:**
 ```powershell
-.\scripts\win\prepare-offline-python.ps1
+.\scripts\win\prepare-offline-bundle.ps1
 ```
 
 **Linux/macOS:**
 ```bash
-./scripts/linux/prepare-offline-python.sh
+./scripts/linux/prepare-offline-bundle.sh
 ```
 
-You'll be prompted:
+You'll see an interactive menu:
+```
+╔══════════════════════════════════════════════════════════════╗
+║          Silo Log Pull - Offline Bundle Generator            ║
+╚══════════════════════════════════════════════════════════════╝
+
+What would you like to include in the offline bundle?
+
+  [1] Python deployment (with dependencies)
+  [2] Container deployment (Docker/Podman image)
+  [3] Both Python and Container
+  [4] Custom selection
+
+Choice [1-4]:
+```
+
+After selecting what to include, you'll be prompted about logs:
 ```
 Do you want to include existing logs in the offline bundle?
+   Files: 23            Path: C:\silo_data\logs
+   Files: 45            Path: C:\silo_data\logs_out
 Include logs? [y/N]:
 ```
 
-### Command-Line Mode
+## Command-Line Mode
 
-**Windows - Include logs:**
-```powershell
-.\scripts\win\prepare-offline-python.ps1 -IncludeLogs
-```
+For automation or when you know exactly what you need:
 
-**Linux - Include logs:**
-```bash
-./scripts/linux/prepare-offline-python.sh --include-logs
-```
-
-## Container Offline Bundle
-
-Same options available:
+### Python Only
 
 **Windows:**
 ```powershell
-.\scripts\win\prepare-offline-container.ps1 [-IncludeLogs]
+# Without logs
+.\scripts\win\prepare-offline-bundle.ps1 -IncludePython -NonInteractive
+
+# With logs
+.\scripts\win\prepare-offline-bundle.ps1 -IncludePython -IncludeLogs -NonInteractive
 ```
 
 **Linux:**
 ```bash
-./scripts/linux/prepare-offline-container.sh [--include-logs]
+# Without logs
+./scripts/linux/prepare-offline-bundle.sh --python --non-interactive
+
+# With logs
+./scripts/linux/prepare-offline-bundle.sh --python --logs --non-interactive
+```
+
+### Container Only
+
+**Windows:**
+```powershell
+# Without logs
+.\scripts\win\prepare-offline-bundle.ps1 -IncludeContainer -NonInteractive
+
+# With logs
+.\scripts\win\prepare-offline-bundle.ps1 -IncludeContainer -IncludeLogs -NonInteractive
+```
+
+**Linux:**
+```bash
+# Without logs
+./scripts/linux/prepare-offline-bundle.sh --container --non-interactive
+
+# With logs
+./scripts/linux/prepare-offline-bundle.sh --container --logs --non-interactive
+```
+
+### Both Python and Container
+
+**Windows:**
+```powershell
+.\scripts\win\prepare-offline-bundle.ps1 -IncludePython -IncludeContainer -IncludeLogs
+```
+
+**Linux:**
+```bash
+./scripts/linux/prepare-offline-bundle.sh --python --container --logs
 ```
 
 ## What Gets Bundled
 
-When you include logs, both directories are bundled:
-- `logs/` - Encrypted logs downloaded from API
-- `logs_out/` - Decrypted/processed logs
+### Output Files
 
-**Note:** Credentials are NEVER bundled for security:
+The script creates appropriately named packages:
+- **Python only:** `silo-log-pull-offline.zip`
+- **Container only:** `silo-log-pull-container-offline.zip`
+- **Both:** `silo-log-pull-full-offline.zip`
+
+### Package Contents
+
+**Always included:**
+- Application code (`silo_batch_pull.py`, etc.)
+- Clean `app/data/` directory structure with empty `logs/` and `logs_out/` directories
+- Example configuration (`example_silo_config.json`)
+- Complete documentation
+- Platform-specific extraction scripts (`offline-extract.ps1`, `offline-extract.sh`)
+- README-OFFLINE.txt with setup instructions
+
+**Optionally included (based on your selections):**
+- **Python dependencies:** Pre-downloaded wheel files in `app/silo-dependencies/`
+- **Container image:** Docker/Podman image as `silo-log-pull.tar`
+- **Logs:** Both directories if requested:
+  - `logs/` - Encrypted logs downloaded from API
+  - `logs_out/` - Decrypted/processed logs
+
+**NEVER included (for security):**
 - `silo_config.json` (actual config with potentially sensitive data)
 - `token.txt`
 - `seccure_key.txt`
+- `data_dir.txt`
 
 These must be configured separately on the target system.
+
+### Log Path Detection
+
+When logs are included, they're automatically discovered from their actual locations:
+- Reads `data_dir.txt` if present (supports redirected data directories)
+- Parses `silo_config.json` for custom log directory names
+- Works correctly even if logs are in non-standard locations like `C:\silo_secrets\logs`
 
 ## Use Cases
 
@@ -112,33 +184,84 @@ Bundle logs with the application for:
 
 After transferring the offline bundle to the target system:
 
-1. **Extract the bundle:**
-   ```bash
-   unzip silo-log-pull-offline.zip
-   # or
-   unzip silo-log-pull-container-offline.zip
-   ```
+### 1. Extract the Bundle
 
-2. **Run the extraction script (recommended):**
+**Windows:**
+```powershell
+Expand-Archive silo-log-pull-offline.zip
+cd silo-log-pull-offline
+```
 
-   **Windows:**
-   ```powershell
-   .\offline-extract.ps1
-   ```
+**Linux/macOS:**
+```bash
+unzip silo-log-pull-offline.zip
+cd silo-log-pull-offline
+```
 
-   **Linux/macOS:**
-   ```bash
-   ./offline-extract.sh
-   ```
+### 2. Run the Extraction Script
 
-3. **Configure credentials:**
-   - Add `app/data/token.txt` if downloading more logs
-   - Add `app/data/seccure_key.txt` if decrypting logs
-   - Configure `app/data/silo_config.json` as needed
+The package includes extraction scripts for each deployment type.
 
-4. **Access bundled logs:**
-   - Encrypted logs will be in `app/data/logs/`
-   - Decrypted logs will be in `app/data/logs_out/`
+**Python deployment:**
+
+Windows:
+```powershell
+.\offline-extract.ps1
+```
+
+Linux/macOS:
+```bash
+./offline-extract.sh
+```
+
+**Container deployment:**
+
+If you bundled both Python and Container, you'll have two extraction scripts:
+
+Windows:
+```powershell
+.\offline-extract.ps1              # Python
+.\offline-extract-container.ps1    # Container
+```
+
+Linux/macOS:
+```bash
+./offline-extract.sh               # Python
+./offline-extract-container.sh     # Container
+```
+
+If you bundled only container, there's just `offline-extract.ps1` / `offline-extract.sh`.
+
+### 3. Configure Credentials
+
+Add the necessary configuration files:
+- `app/data/silo_config.json` - Your organization and log settings
+- `app/data/token.txt` - API token (if downloading more logs)
+- `app/data/seccure_key.txt` - Decryption key (if decrypting logs)
+
+### 4. Access Bundled Logs
+
+If you included logs in the bundle:
+- Encrypted logs: `app/data/logs/`
+- Decrypted logs: `app/data/logs_out/`
+
+### 5. Run the Application
+
+**Python deployment:**
+```bash
+cd app
+source venv/bin/activate    # Linux/macOS
+# or
+.\venv\Scripts\Activate.ps1  # Windows
+
+python silo_batch_pull.py
+```
+
+**Container deployment:**
+```bash
+cd app
+docker run --rm -v $(pwd)/data:/data silo-log-pull
+```
 
 ## See Also
 

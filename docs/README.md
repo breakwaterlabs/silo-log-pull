@@ -1,5 +1,10 @@
 # Documentation
 
+## Quick Start Guides
+
+- [Quick Start: Data Configuration](quick-start-data-configuration.md) - Redirecting data directories
+- [Quick Start: Offline Bundle Creation](quick-start-offline-bundling.md) - Creating offline packages
+
 ## Deployment Guides
 
 - [Container Guide](container-guide.md) - Docker/Podman on any OS
