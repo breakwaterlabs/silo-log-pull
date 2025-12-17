@@ -298,7 +298,7 @@ pages:
   artifacts:
     paths:
       - public
-    expire_after: never
+    expire_in: never
   rules:
     # Only run on main branch or tags
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
