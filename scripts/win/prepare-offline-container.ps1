@@ -330,6 +330,9 @@ Copy-Item -Path (Join-Path $repoBase "docs") -Destination (Join-Path $tempDir "d
 Write-Host "Adding scripts directory..." -ForegroundColor Gray
 Copy-Item -Path (Join-Path $repoBase "scripts") -Destination (Join-Path $tempDir "scripts") -Recurse -Force
 
+# Remove data_dir.txt if it was copied
+Remove-Item -Path (Join-Path $tempDir "data_dir.txt") -Force -ErrorAction SilentlyContinue
+
 # Create the zip with all necessary files
 Write-Host "Compressing archive..." -ForegroundColor Gray
 Compress-Archive -Path (Join-Path $tempDir "*") -DestinationPath $outputZip -Force

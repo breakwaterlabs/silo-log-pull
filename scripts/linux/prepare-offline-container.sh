@@ -338,7 +338,7 @@ cp -r "${REPOBASE}/scripts" "${TEMP_DIR}/"
 
 # Create the zip with all necessary files
 cd "${TEMP_DIR}"
-zip -r "${OUTPUT_ZIP}" . -x "*.pyc" "__pycache__/*" "*/pycache__/*"
+zip -r "${OUTPUT_ZIP}" . -x "*.pyc" "__pycache__/*" "*/pycache__/*" "data_dir.txt"
 
 # Clean up temp directory
 cd "${REPOBASE}"

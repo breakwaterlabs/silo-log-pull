@@ -322,6 +322,7 @@ if (-not $IncludeLogs) {
 
 Remove-Item -Path (Join-Path $stagingApp "data\silo_config.json") -Force -ErrorAction SilentlyContinue
 Remove-Item -Path (Join-Path $stagingApp "data\token.txt") -Force -ErrorAction SilentlyContinue
+Remove-Item -Path (Join-Path $stagingApp "data_dir.txt") -Force -ErrorAction SilentlyContinue
 
 # Copy docs directory
 Write-Host "Adding docs directory..." -ForegroundColor Gray

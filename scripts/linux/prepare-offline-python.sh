@@ -299,7 +299,7 @@ cd "${REPOBASE}"
 rm -f "${OUTPUT_ZIP}"
 
 # Build exclusion list
-EXCLUSIONS="-x app/venv/* app/__pycache__/* app/data/silo_config.json app/data/token.txt"
+EXCLUSIONS="-x app/venv/* app/__pycache__/* app/data/silo_config.json app/data/token.txt app/data_dir.txt"
 EXCLUSIONS="$EXCLUSIONS scripts/*/__pycache__/*"
 
 # Conditionally exclude logs
