@@ -31,8 +31,9 @@ variables:
 # Generate documentation and publish to GitLab Pages
 pages:
   stage: docs
-  image: pandoc/latex:latest
-  entrypoint: ["/bin/sh", "-c"]
+  image: 
+    name: pandoc/latex:latest
+    entrypoint: ["/bin/sh", "-c"]
   script:
     # Create output directories
     - mkdir -p public/html public/pdf
