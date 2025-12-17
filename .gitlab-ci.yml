@@ -355,5 +355,5 @@ publish:
       fi
   rules:
     # Only publish on main branch or tags
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH
     - if: $CI_COMMIT_TAG
