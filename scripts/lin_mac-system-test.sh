@@ -10,6 +10,8 @@
 
 set -o pipefail
 
+REPOBASE="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+
 # ANSI color codes
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -176,12 +178,7 @@ test_python_installed() {
 }
 
 test_python_requirements() {
-    local requirements_path="${BASH_SOURCE%/*}/app/requirements.txt"
-
-    # If running from a different directory, try to find requirements.txt
-    if [[ ! -f "$requirements_path" ]]; then
-        requirements_path="./app/requirements.txt"
-    fi
+    local requirements_path="${REPOBASE}/app/requirements.txt"
 
     if [[ ! -f "$requirements_path" ]]; then
         write_test_result "Info" "requirements.txt not found, skipping dependency check"

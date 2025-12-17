@@ -27,6 +27,8 @@ param(
     [string]$Mode = 'All'
 )
 
+$script:repoBase = Split-Path -Parent $PSScriptRoot
+
 # Information hashtable
 $script:Info = @{}
 $script:Failures = 0
@@ -182,7 +184,7 @@ function Test-PythonInPath {
 }
 
 function Test-PythonRequirements {
-    $requirementsPath = Join-Path $PSScriptRoot "app\requirements.txt"
+    $requirementsPath = join-path $script:repoBase "app\requirements.txt"
 
     if (-not (Test-Path $requirementsPath)) {
         Write-TestResult -Status Fail -Message "requirements.txt not found at $requirementsPath"
