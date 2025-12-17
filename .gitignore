@@ -12,6 +12,8 @@
 *.json
 *.txt
 *.tar
+*.tar.gz
+*.tgz
 *.zip
 
 # Whitelist the default logs directory itself, but not subfiles
