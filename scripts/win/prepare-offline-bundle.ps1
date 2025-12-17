@@ -545,95 +545,113 @@ Write-Host "See the docs\ directory for complete documentation."
 }
 
 # Create README
-$readmeContent = @"
-================================================================================
-silo-log-pull - Offline Package
-================================================================================
+$readmeContent = "================================================================================" + [Environment]::NewLine
+$readmeContent += "silo-log-pull - Offline Package" + [Environment]::NewLine
+$readmeContent += "================================================================================" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "This package contains everything needed to run silo-log-pull on an offline" + [Environment]::NewLine
+$readmeContent += "system without internet access." + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "CONTENTS:" + [Environment]::NewLine
+$readmeContent += "  - app/                  Python application" + [Environment]::NewLine
+if ($IncludePython) {
+    $readmeContent += "  - app/silo-dependencies/  Python dependencies (offline packages)" + [Environment]::NewLine
+}
+if ($IncludeContainer) {
+    $readmeContent += "  - silo-log-pull.tar     Container image (Docker/Podman)" + [Environment]::NewLine
+}
+$readmeContent += "  - docs/                 Complete documentation" + [Environment]::NewLine
+$readmeContent += "  - scripts/              Setup and utility scripts" + [Environment]::NewLine
+if ($IncludePython) {
+    $readmeContent += "  - offline-extract.sh    Python setup script (Linux/macOS)" + [Environment]::NewLine
+    $readmeContent += "  - offline-extract.ps1   Python setup script (Windows)" + [Environment]::NewLine
+}
+if ($IncludeContainer -and $IncludePython) {
+    $readmeContent += "  - offline-extract-container.sh   Container setup script (Linux/macOS)" + [Environment]::NewLine
+    $readmeContent += "  - offline-extract-container.ps1  Container setup script (Windows)" + [Environment]::NewLine
+} elseif ($IncludeContainer) {
+    $readmeContent += "  - offline-extract.sh    Container setup script (Linux/macOS)" + [Environment]::NewLine
+    $readmeContent += "  - offline-extract.ps1   Container setup script (Windows)" + [Environment]::NewLine
+}
+$readmeContent += "  - README-OFFLINE.txt    This file" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "QUICK START:" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
 
-This package contains everything needed to run silo-log-pull on an offline
-system without internet access.
+if ($IncludePython) {
+    $readmeContent += "  Python Deployment (Linux/macOS):" + [Environment]::NewLine
+    $readmeContent += "    1. Extract this archive: unzip $(Split-Path -Leaf $OutputPath)" + [Environment]::NewLine
+    $readmeContent += "    2. Run setup script: ./offline-extract.sh" + [Environment]::NewLine
+    $readmeContent += "    3. Follow on-screen instructions" + [Environment]::NewLine
+    $readmeContent += [Environment]::NewLine
+    $readmeContent += "  Python Deployment (Windows):" + [Environment]::NewLine
+    $readmeContent += "    1. Extract this archive: Expand-Archive $(Split-Path -Leaf $OutputPath)" + [Environment]::NewLine
+    $readmeContent += "    2. Run setup script: .\offline-extract.ps1" + [Environment]::NewLine
+    $readmeContent += "    3. Follow on-screen instructions" + [Environment]::NewLine
+    $readmeContent += [Environment]::NewLine
+}
 
-CONTENTS:
-  - app/                  Python application
-$(if ($IncludePython) { "  - app/silo-dependencies/  Python dependencies (offline packages)" })
-$(if ($IncludeContainer) { "  - silo-log-pull.tar     Container image (Docker/Podman)" })
-  - docs/                 Complete documentation
-  - scripts/              Setup and utility scripts
-$(if ($IncludePython) { "  - offline-extract.sh    Python setup script (Linux/macOS)" })
-$(if ($IncludePython) { "  - offline-extract.ps1   Python setup script (Windows)" })
-$(if ($IncludeContainer -and $IncludePython) { "  - offline-extract-container.sh   Container setup script (Linux/macOS)" })
-$(if ($IncludeContainer -and $IncludePython) { "  - offline-extract-container.ps1  Container setup script (Windows)" })
-$(if ($IncludeContainer -and -not $IncludePython) { "  - offline-extract.sh    Container setup script (Linux/macOS)" })
-$(if ($IncludeContainer -and -not $IncludePython) { "  - offline-extract.ps1   Container setup script (Windows)" })
-  - README-OFFLINE.txt    This file
+if ($IncludeContainer) {
+    $containerScript = if ($IncludePython) { "offline-extract-container" } else { "offline-extract" }
+    $readmeContent += "  Container Deployment (Linux/macOS):" + [Environment]::NewLine
+    $readmeContent += "    1. Extract this archive: unzip $(Split-Path -Leaf $OutputPath)" + [Environment]::NewLine
+    $readmeContent += "    2. Run setup script: ./$containerScript.sh" + [Environment]::NewLine
+    $readmeContent += "    3. Follow on-screen instructions" + [Environment]::NewLine
+    $readmeContent += [Environment]::NewLine
+    $readmeContent += "  Container Deployment (Windows):" + [Environment]::NewLine
+    $readmeContent += "    1. Extract this archive: Expand-Archive $(Split-Path -Leaf $OutputPath)" + [Environment]::NewLine
+    $readmeContent += "    2. Run setup script: .\$containerScript.ps1" + [Environment]::NewLine
+    $readmeContent += "    3. Follow on-screen instructions" + [Environment]::NewLine
+    $readmeContent += [Environment]::NewLine
+}
 
-QUICK START:
+$readmeContent += "CONFIGURATION:" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "  See docs/configuration-reference.md for complete configuration details." + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "  Quick start:" + [Environment]::NewLine
+$readmeContent += "    1. Copy app/data/example_silo_config.json to app/data/silo_config.json" + [Environment]::NewLine
+$readmeContent += "    2. Edit silo_config.json with your organization name" + [Environment]::NewLine
+$readmeContent += "    3. Create app/data/token.txt with your API token" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "RUNNING:" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
 
-$(if ($IncludePython) { @"
-  Python Deployment (Linux/macOS):
-    1. Extract this archive: unzip $(Split-Path -Leaf $OutputPath)
-    2. Run setup script: ./offline-extract.sh
-    3. Follow on-screen instructions
+if ($IncludePython) {
+    $readmeContent += "  Python deployment after setup:" + [Environment]::NewLine
+    $readmeContent += "    cd app" + [Environment]::NewLine
+    $readmeContent += "    source venv/bin/activate  (Linux/macOS) or .\venv\Scripts\Activate.ps1 (Windows)" + [Environment]::NewLine
+    $readmeContent += "    python silo_batch_pull.py" + [Environment]::NewLine
+    $readmeContent += [Environment]::NewLine
+}
 
-  Python Deployment (Windows):
-    1. Extract this archive: Expand-Archive $(Split-Path -Leaf $OutputPath)
-    2. Run setup script: .\offline-extract.ps1
-    3. Follow on-screen instructions
-"@ })
+if ($IncludeContainer) {
+    $readmeContent += "  Container deployment after setup:" + [Environment]::NewLine
+    $readmeContent += "    cd app" + [Environment]::NewLine
+    $readmeContent += "    docker run --rm -v `$(pwd)/data:/data silo-log-pull  (Linux/macOS)" + [Environment]::NewLine
+    $readmeContent += "    docker run --rm -v `${PWD}/data:/data silo-log-pull  (Windows)" + [Environment]::NewLine
+    $readmeContent += [Environment]::NewLine
+}
 
-$(if ($IncludeContainer) { @"
-  Container Deployment (Linux/macOS):
-    1. Extract this archive: unzip $(Split-Path -Leaf $OutputPath)
-    2. Run setup script: ./offline-extract$(if ($IncludePython) {"-container"}).sh
-    3. Follow on-screen instructions
-
-  Container Deployment (Windows):
-    1. Extract this archive: Expand-Archive $(Split-Path -Leaf $OutputPath)
-    2. Run setup script: .\offline-extract$(if ($IncludePython) {"-container"}).ps1
-    3. Follow on-screen instructions
-"@ })
-
-CONFIGURATION:
-
-  See docs/configuration-reference.md for complete configuration details.
-
-  Quick start:
-    1. Copy app/data/example_silo_config.json to app/data/silo_config.json
-    2. Edit silo_config.json with your organization name
-    3. Create app/data/token.txt with your API token
-
-RUNNING:
-
-$(if ($IncludePython) { @"
-  Python deployment after setup:
-    cd app
-    source venv/bin/activate  (Linux/macOS) or .\venv\Scripts\Activate.ps1 (Windows)
-    python silo_batch_pull.py
-"@ })
-
-$(if ($IncludeContainer) { @"
-  Container deployment after setup:
-    cd app
-    docker run --rm -v `$(pwd)/data:/data silo-log-pull  (Linux/macOS)
-    docker run --rm -v `${PWD}/data:/data silo-log-pull  (Windows)
-"@ })
-
-DOCUMENTATION:
-
-  All documentation is in the docs/ directory:
-    - README.md                      Documentation index
-    - configuration-reference.md     All settings and options
-$(if ($IncludePython) { "    - python-guide.md               Python deployment guide" })
-$(if ($IncludeContainer) { "    - container-guide.md            Container deployment guide" })
-    - scheduled-execution.md        Automation setup
-    - example_configs/              Example configurations
-
-SUPPORT:
-
-  See https://gitlab.com/breakwaterlabs/silo-log-pull for updates and support.
-
-================================================================================
-"@
+$readmeContent += "DOCUMENTATION:" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "  All documentation is in the docs/ directory:" + [Environment]::NewLine
+$readmeContent += "    - README.md                      Documentation index" + [Environment]::NewLine
+$readmeContent += "    - configuration-reference.md     All settings and options" + [Environment]::NewLine
+if ($IncludePython) {
+    $readmeContent += "    - python-guide.md               Python deployment guide" + [Environment]::NewLine
+}
+if ($IncludeContainer) {
+    $readmeContent += "    - container-guide.md            Container deployment guide" + [Environment]::NewLine
+}
+$readmeContent += "    - scheduled-execution.md        Automation setup" + [Environment]::NewLine
+$readmeContent += "    - example_configs/              Example configurations" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "SUPPORT:" + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "  See https://gitlab.com/breakwaterlabs/silo-log-pull for updates and support." + [Environment]::NewLine
+$readmeContent += [Environment]::NewLine
+$readmeContent += "================================================================================" + [Environment]::NewLine
 
 Set-Content -Path (Join-Path $tempDir "README-OFFLINE.txt") -Value $readmeContent -NoNewline
 
