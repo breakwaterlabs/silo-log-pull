@@ -48,16 +48,20 @@ pages:
           filename=$(basename "$md_file" .md)
           title=$(echo "$filename" | sed 's/-/ /g' | sed 's/\b\(.\)/\u\1/g')
           echo "Converting $filename.md to HTML..."
-          pandoc "$md_file" \
-            -f markdown \
-            -t html5 \
-            --standalone \
-            --self-contained \
-            --toc \
-            --toc-depth=3 \
-            --css=https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css \
+          pandoc --from markdown --to html5   \
+            --self-contained --standalone    \
+            --toc --toc-depth=3              \
+            --lua-filter scripts/cicd/pandoc-fix-links.lua       \
+            --katex --template=GitHub.html5  \
             --metadata title="$title" \
-            -o "public/html/${filename}.html"
+            -o "public/html/${filename}.html" "$md_file"
+
+            pandoc --from markdown --to latex  \
+              --self-contained --standalone    \
+              --lua-filter scripts/cicd/pandoc-fix-links.lua       \
+              --katex --template=eisvogel      \
+              --metadata title="$title" \
+              -o "public/pdf/${filename}.pdf" "$md_file"
         fi
       done
 
@@ -74,7 +78,8 @@ pages:
             --self-contained \
             --toc \
             --toc-depth=3 \
-            --css=https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown.min.css \
+            --lua-filter scripts/cicd/pandoc-fix-links.lua       \
+            --katex --template=GitHub.html5  \
             --metadata title="Example: $dirname" \
             -o "public/html/example_${dirname}.html"
         fi
@@ -97,12 +102,10 @@ pages:
         docs/building-images.md \
         -f markdown \
         -t pdf \
-        --pdf-engine=xelatex \
         --toc \
         --toc-depth=3 \
-        -V geometry:margin=1in \
-        -V documentclass=article \
-        -V papersize=letter \
+        --lua-filter scripts/cicd/pandoc-fix-links.lua       \
+        --katex --template=eisvogel
         --metadata title="silo-log-pull Documentation" \
         --metadata author="Breakwater Labs" \
         -o "public/pdf/silo-log-pull-documentation.pdf"
