@@ -1,9 +1,6 @@
 # Ignore the contents of any data and logs folders. Only , and the log directory itself (but not contents)
 **/data/**
 **/logs*
-!app/data/logs/
-!app/data/logs_out/
-!**/data/example_*
 
 # Ignore sensitive files anywhere in repo
 **/token.txt
@@ -12,7 +9,7 @@
 
 
 # Ignore data files
-**/silo-dependencies/**
+**/silo-dependencies
 *.csv
 *.json
 *.txt
@@ -23,16 +20,30 @@
 *.whl
 
 
-# Whitelist specific example files
+# Whitelist: Documentation
+!docs/*.md
+!docs/*.pdf
+!docs/*.txt
 !docs/example_configs/**
+
+# Whitelist: Scripts
+!scripts/cicd/*.lua
+!scripts/templates/*.txt
+!scripts/win/*.ps1
+!scripts/win/*.bat
+!scripts/linux/*.sh
+
+# Whitelist: App, directories, and example files
+!app/*.py
 !app/data/example_*
+!app/data/logs/
+!app/data/logs_out/
+
 
 # Whitelist code and documentation
-!*.py
-!*.md
-!*.bat
-!*.sh
-!requirements.txt
+!/*.bat
+!/*.sh
 !.gitlab-ci.yml
 !docker-compose.yml
 !Dockerfile
+!requirements.txt
