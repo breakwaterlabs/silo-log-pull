@@ -17,7 +17,7 @@
 # No configuration needed - this works out of the box with GitLab's built-in registry and Pages
 
 stages:
-#  - docs
+  - docs
   - build
   - publish
 
@@ -325,8 +325,8 @@ build:
     - docker run --rm $IMAGE_NAME:$CI_COMMIT_SHORT_SHA python --version
   rules:
     # Run on all branches and tags
-    - if: $CI_COMMIT_BRANCH
-    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "DoNotRun"   
+      when: never
 
 # Publish to registry on main branch and tags
 publish:
