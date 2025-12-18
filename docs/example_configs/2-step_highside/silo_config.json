@@ -1,17 +1,11 @@
 {
-    "log_in_directory": "log_ingest",
-    "log_out_directory": "log_decrypted",
-    "api_download_logs": true,
-    "api_endpoint": "extapi.authentic8.com",
-    "api_org_name": "none",
-    "api_token_file": "token.txt",
-    "log_type": "ENC",
-    "date_start": "",
-    "fetch_num_days": 90,
+    "log_in_directory": "logs",
+    "log_out_directory": "log_out",
+    "api_download_logs": false,
     "seccure_passphrase_file": "seccure_key.txt",
     "seccure_decrypt_logs": true,
     "seccure_show_pubkey": true,
     "output_csv": true,
     "output_json": true,
-    "output_console": true
+    "output_console": false
 }

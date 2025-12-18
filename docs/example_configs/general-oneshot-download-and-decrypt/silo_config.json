@@ -1,6 +1,6 @@
 {
     "log_in_directory": "logs",
-    "log_out_directory": "logs",
+    "log_out_directory": "logs_out",
     "api_download_logs": true,
     "api_endpoint": "extapi.authentic8.com",
     "api_org_name": "My Silo Organization",
@@ -13,5 +13,5 @@
     "seccure_show_pubkey": true,
     "output_csv": true,
     "output_json": true,
-    "output_console": true
+    "output_console": false
 }
