@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 
 <#
 .SYNOPSIS
@@ -44,6 +44,10 @@ param(
     [string]$OutputPath
 )
 
+
+$BannerTop = '╔══════════════════════════════════════════════════════════════╗'
+$BannerBottom = '╚══════════════════════════════════════════════════════════════╝'
+$CheckMark = '✓'
 $repoBase = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tempDir = Join-Path $repoBase ".offline-temp-bundle"
 

@@ -1,12 +1,10 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 
 <#
 .SYNOPSIS
     Get log directory details for offline bundling
 .DESCRIPTION
-    Returns objects with log directory information including file counts and paths
-.OUTPUTS
-    PSCustomObject[] - Array of objects with FileCount, Path, and Exists properties
+    Returns formatted information about log directories including file counts and paths
 #>
 
 function Get-DataDir {
@@ -53,29 +51,18 @@ function Get-LogDirectories {
     }
 }
 
-function Get-LogDirectoryInfo {
+function Get-FileCountDisplay {
     param($Path)
-
-    $exists = Test-Path $Path -PathType Container
-    $fileCount = if ($exists) {
-        (Get-ChildItem -Path $Path -File -Depth 0 -ErrorAction SilentlyContinue | Measure-Object).Count
-    } else {
-        $null
+    if (Test-Path $Path -PathType Container) {
+        $count = (Get-ChildItem -Path $Path -File -Depth 0 -ErrorAction SilentlyContinue | Measure-Object).Count
+        return ("{0} files" -f $count).PadRight(13)
     }
-
-    return [PSCustomObject]@{
-        Path = $Path
-        FileCount = $fileCount
-        Exists = $exists
-    }
+    return "(not found)".PadRight(13)
 }
 
 # Main execution
 $dataDir = Get-DataDir
 $logDirs = Get-LogDirectories -DataDir $dataDir
 
-# Return array of log directory info objects
-@(
-    (Get-LogDirectoryInfo -Path $logDirs.LogIn),
-    (Get-LogDirectoryInfo -Path $logDirs.LogOut)
-)
+Write-Output "$(Get-FileCountDisplay -Path $logDirs.LogIn)$($logDirs.LogIn)"
+Write-Output "$(Get-FileCountDisplay -Path $logDirs.LogOut)$($logDirs.LogOut)"
