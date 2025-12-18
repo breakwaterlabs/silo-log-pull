@@ -1,0 +1,37 @@
+# Default to auto line ending handling
+* text=auto
+
+# Linux shell scripts - LF, UTF-8
+*.sh text eol=lf
+setup-linux.sh text eol=lf
+
+# Windows PowerShell scripts - CRLF, UTF-8 with BOM
+*.ps1 text eol=crlf working-tree-encoding=UTF-8
+setup-win.ps1 text eol=crlf working-tree-encoding=UTF-8
+setup-win.bat text eol=crlf
+
+
+# Python files - LF, UTF-8
+*.py text eol=lf
+
+# Configuration and data files - LF, UTF-8
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Dockerfile - LF, UTF-8
+Dockerfile text eol=lf
+
+# Binary files - no conversion
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

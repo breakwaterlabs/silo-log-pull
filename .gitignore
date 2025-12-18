@@ -1,13 +1,18 @@
-# Ignore sensitive files anywhere in repo
-# Both of these logs entries are necessary in conjunction with the whitelist...
-# ....to ensure that /app/data/logs is kept but all other log files are ignored
-**/logs/*
+# Ignore the contents of any data and logs folders. Only , and the log directory itself (but not contents)
+**/data/**
 **/logs*
+!app/data/logs/
+!app/data/logs_out/
+!**/data/example_*
+
+# Ignore sensitive files anywhere in repo
 **/token.txt
 **/seccure_key.txt
 **/silo_config.json
 
+
 # Ignore data files
+**/silo-dependencies/**
 *.csv
 *.json
 *.txt
@@ -15,20 +20,18 @@
 *.tar.gz
 *.tgz
 *.zip
+*.whl
 
-# Whitelist the default logs directory itself, but not subfiles
-!app/data/logs
-
-# Whitelist example configs directory (all files in there are examples)
-!docs/example_configs/**
 
 # Whitelist specific example files
-!**/example_*
+!docs/example_configs/**
+!app/data/example_*
 
 # Whitelist code and documentation
 !*.py
 !*.md
 !*.bat
+!*.sh
 !requirements.txt
 !.gitlab-ci.yml
 !docker-compose.yml
