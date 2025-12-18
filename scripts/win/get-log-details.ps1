@@ -51,18 +51,32 @@ function Get-LogDirectories {
     }
 }
 
-function Get-FileCountDisplay {
-    param($Path)
-    if (Test-Path $Path -PathType Container) {
-        $count = (Get-ChildItem -Path $Path -File -Depth 0 -ErrorAction SilentlyContinue | Measure-Object).Count
-        return ("{0} files" -f $count).PadRight(13)
+function Get-LogDirectoryInfo {
+    param(
+        [string]$Name,
+        [string]$Path
+    )
+
+    $exists = Test-Path $Path -PathType Container
+    $fileCount = if ($exists) {
+        (Get-ChildItem -Path $Path -File -Depth 0 -ErrorAction SilentlyContinue | Measure-Object).Count
+    } else {
+        $null
     }
-    return "(not found)".PadRight(13)
+
+    return [PSCustomObject]@{
+        Name = $Name
+        FileCount = $fileCount
+        Path = $Path
+    }
 }
 
 # Main execution
 $dataDir = Get-DataDir
 $logDirs = Get-LogDirectories -DataDir $dataDir
 
-Write-Output "$(Get-FileCountDisplay -Path $logDirs.LogIn)$($logDirs.LogIn)"
-Write-Output "$(Get-FileCountDisplay -Path $logDirs.LogOut)$($logDirs.LogOut)"
+# Return array of log directory info objects
+@(
+    (Get-LogDirectoryInfo -Name "Logs_in" -Path $logDirs.LogIn),
+    (Get-LogDirectoryInfo -Name "Logs_out" -Path $logDirs.LogOut)
+)

@@ -48,9 +48,12 @@ if (-not $logDetails -or $logDetails.Count -eq 0) {
 $totalFilesCopied = 0
 
 foreach ($logInfo in $logDetails) {
-    if ($logInfo.Exists -and $logInfo.FileCount -gt 0) {
-        # Determine destination directory name based on source path
-        $destDir = if ($logInfo.Path -match "logs_out|log_out_directory") {
+    # Check if path exists (FileCount is not $null)
+    $pathExists = $null -ne $logInfo.FileCount
+
+    if ($pathExists -and $logInfo.FileCount -gt 0) {
+        # Determine destination directory name based on log name
+        $destDir = if ($logInfo.Name -eq "Logs_out") {
             "logs_out"
         } else {
             "logs"
@@ -58,7 +61,7 @@ foreach ($logInfo in $logDetails) {
 
         $destPath = Join-Path $OutputPath $destDir
 
-        Write-Host "Copying $($logInfo.FileCount) file(s) from:" -ForegroundColor Gray
+        Write-Host "Copying $($logInfo.FileCount) file(s) from $($logInfo.Name):" -ForegroundColor Gray
         Write-Host "  Source: $($logInfo.Path)" -ForegroundColor Gray
         Write-Host "  Dest:   $destPath" -ForegroundColor Gray
 
@@ -78,10 +81,10 @@ foreach ($logInfo in $logDetails) {
         } catch {
             Write-Host "  ✗ Error copying files: $_" -ForegroundColor Red
         }
-    } elseif (-not $logInfo.Exists) {
-        Write-Host "Skipping (not found): $($logInfo.Path)" -ForegroundColor Yellow
+    } elseif (-not $pathExists) {
+        Write-Host "Skipping $($logInfo.Name) (path not found): $($logInfo.Path)" -ForegroundColor Yellow
     } elseif ($logInfo.FileCount -eq 0) {
-        Write-Host "Skipping (empty): $($logInfo.Path)" -ForegroundColor Yellow
+        Write-Host "Skipping $($logInfo.Name) (empty): $($logInfo.Path)" -ForegroundColor Yellow
     }
 }
 

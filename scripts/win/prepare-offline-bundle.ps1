@@ -126,14 +126,10 @@ if (-not $NonInteractive -and -not ($PSBoundParameters.ContainsKey('IncludePytho
 
         Write-Host ""
         Write-Host "Do you want to include existing logs in the offline bundle?" -ForegroundColor Yellow
-        foreach ($logInfo in $logDetails) {
-            $displayCount = if ($logInfo.Exists) {
-                "$($logInfo.FileCount)"
-            } else {
-                "(not found)"
-            }
-            Write-Host "   Files: $($displayCount.PadRight(13)) Path: $($logInfo.Path)"
+        $logdetails | ForEach-Object {
+            if ($_.filecount -eq $null) {$_.filecount="(not found)"}
         }
+        write-host $($logDetails | out-string)
         Write-Host -NoNewline "Include logs? [y/N]: "
         $response = Read-Host
         $IncludeLogs = ($response -eq 'y' -or $response -eq 'Y')
