@@ -45,9 +45,6 @@ param(
 )
 
 
-$BannerTop = '╔══════════════════════════════════════════════════════════════╗'
-$BannerBottom = '╚══════════════════════════════════════════════════════════════╝'
-$CheckMark = '✓'
 $repoBase = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tempDir = Join-Path $repoBase ".offline-temp-bundle"
 
@@ -160,7 +157,7 @@ if ($IncludePython) {
     }
 
     try {
-        $pipVersion = & python -m pip --version 2>&1
+        $null = & python -m pip --version 2>&1
         if ($LASTEXITCODE -ne 0) {
             throw "pip not found"
         }
